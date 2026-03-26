@@ -111,6 +111,11 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7h18M3 17h18M7 3v18M17 3v18" />
                 </svg>
             </button>
+            <button id="btn-clear-all" onclick="clearAllMeasurements()" class="p-2 hover:bg-red-100 rounded-full text-red-500" title="删除所有测量">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 011.995 1.858L5 17m0 0L6.983 5.142A2 2 0 011.995-1.858L19 7m0 0a2 2 0 002 2v3a2 2 0 01-2 2H7a2 2 0 01-2-2V9a2 2 0 012-2m0 0a2 2 0 012-2v-3a2 2 0 01-2-2m0 0a2 2 0 012-2v-3a2 2 0 01-2-2m0 0a2 2 0 012-2v-3a2 2 0 01-2-2m0 0a2 2 0 012-2v-3a2 2 0 01-2-2m0 0a2 2 0 012-2v-3a2 2 0 01-2-2" />
+                </svg>
+            </button>
         </div>
 
         <!-- 底部场景列表 -->
@@ -412,6 +417,17 @@
             areaPointCountElement.textContent = '已选点位：0';
         }
 
+        // 自动完成面积测量（当点击其他按钮时）
+        function autoFinishAreaMeasurement() {
+            if (areaDraftPoints.length >= 3) {
+                const created = createAreaMeasurementItem(areaDraftPoints);
+                setActiveAreaMeasurement(created.id);
+                areaStatusElement.textContent = `已生成面积：${created.areaValue.toFixed(2)} m²`;
+                clearAreaDraft();
+                isAreaMeasurementCompleted = true;
+            }
+        }
+
         function addAreaDraftPoint(point) {
             const pointElement = document.createElement('div');
             pointElement.className = 'area-draft-point';
@@ -491,6 +507,33 @@
                 }
                 setActiveAreaMeasurement(null);
             }
+        }
+
+        // 删除所有测量结果
+        function clearAllMeasurements() {
+            // 删除所有距离测量
+            measurements.forEach(item => {
+                item.lineEl.remove();
+                item.p1El.remove();
+                item.p2El.remove();
+                item.labelEl.remove();
+            });
+            measurements = [];
+            
+            // 删除所有面积测量
+            areaMeasurements.forEach(item => {
+                item.lineEls.forEach(element => element.remove());
+                item.pointEls.forEach(element => element.remove());
+                item.badgeEl.remove();
+            });
+            areaMeasurements = [];
+            
+            // 清除选中状态
+            setActiveMeasurement(null);
+            setActiveAreaMeasurement(null);
+            
+            // 隐藏删除按钮
+            measurementDeleteButton.style.display = 'none';
         }
 
         function updateStoredMeasurementsUI() {
@@ -617,12 +660,34 @@
         // --- 交互功能 ---
         let isMeasuring = false;
         let isAreaMeasuring = false;
+        let isAreaMeasurementCompleted = false; // 标记面积测量是否已完成
         const measureStatusElement = document.querySelector('#measure-result .text-xl');
 
         function setMode(mode) {
             document.getElementById('btn-rotate').classList.remove('active-tool');
             document.getElementById('btn-pan').classList.remove('active-tool');
             
+            // 如果面积测量正在进行中，自动完成并保存
+            if (isAreaMeasuring && areaDraftPoints.length >= 3) {
+                autoFinishAreaMeasurement();
+            }
+            
+            // 如果距离测量正在进行中，自动完成并保存
+            if (isMeasuring && measureWorldPoints.length === 1) {
+                // 只有一个点，取消测量
+                measureWorldPoints = [];
+                resetMeasureUI();
+            }
+            
+            // 退出所有测量模式
+            if (isMeasuring) {
+                toggleMeasure();
+            }
+            if (isAreaMeasuring) {
+                toggleAreaMeasure();
+            }
+            
+            // 切换到对应的旋转/平移模式
             if (mode === 'rotate') {
                 controls.mouseButtons = { LEFT: THREE.MOUSE.ROTATE, MIDDLE: THREE.MOUSE.DOLLY, RIGHT: THREE.MOUSE.PAN };
                 document.getElementById('btn-rotate').classList.add('active-tool');
@@ -630,9 +695,6 @@
                 controls.mouseButtons = { LEFT: THREE.MOUSE.PAN, MIDDLE: THREE.MOUSE.DOLLY, RIGHT: THREE.MOUSE.ROTATE };
                 document.getElementById('btn-pan').classList.add('active-tool');
             }
-            
-            if (isMeasuring) toggleMeasure();
-            if (isAreaMeasuring) toggleAreaMeasure();
         }
 
         function toggleMeasure() {
@@ -640,6 +702,11 @@
             const btn = document.getElementById('btn-measure');
             const areaBtn = document.getElementById('btn-area');
             const container = document.getElementById('canvas-container');
+            
+            // 如果面积测量正在进行中，自动完成并保存
+            if (isAreaMeasuring && areaDraftPoints.length >= 3) {
+                autoFinishAreaMeasurement();
+            }
             
             if (!isMeasuring && isAreaMeasuring) {
                 toggleAreaMeasure();
@@ -657,6 +724,7 @@
                 measureStatusElement.innerHTML = "请选择起点";
                 measureStatusElement.classList.add('text-sm', 'font-normal');
             } else {
+                // 只隐藏面板，不清除已保存的测量结果
                 panel.classList.add('hidden');
                 btn.classList.remove('active-tool');
                 container.classList.remove('measuring');
@@ -665,6 +733,7 @@
                 measureWorldPoints = [];
                 resetMeasureUI();
                 setActiveMeasurement(null);
+                // 注意：不清除 measurements 数组，已保存的结果会保留
             }
         }
 
@@ -674,10 +743,16 @@
             const distanceBtn = document.getElementById('btn-measure');
             const container = document.getElementById('canvas-container');
 
+            // 如果面积测量正在进行中，自动完成并保存
+            if (isAreaMeasuring && areaDraftPoints.length >= 3) {
+                autoFinishAreaMeasurement();
+            }
+            
             if (!isAreaMeasuring && isMeasuring) {
                 toggleMeasure();
             }
             isAreaMeasuring = !isAreaMeasuring;
+            isAreaMeasurementCompleted = false; // 重置完成状态
 
             if (isAreaMeasuring) {
                 panel.classList.remove('hidden');
@@ -689,13 +764,16 @@
                 clearAreaDraft();
                 areaStatusElement.textContent = '请选择至少三个点';
             } else {
+                // 只隐藏面板，不清除已保存的测量结果
                 panel.classList.add('hidden');
                 btn.classList.remove('active-tool');
                 container.classList.remove('measuring');
                 controls.enabled = true;
                 setModeButtonEnabled(true);
                 setActiveAreaMeasurement(null);
+                // 只清除草稿，不清除已保存的测量结果
                 clearAreaDraft();
+                // 注意：不清除 areaMeasurements 数组，已保存的结果会保留
             }
         }
 
@@ -744,12 +822,13 @@
         }
 
         function setModeButtonEnabled(enabled) {
-            document.getElementById('btn-rotate').disabled = !enabled;
-            document.getElementById('btn-pan').disabled = !enabled;
-            document.getElementById('btn-rotate').style.opacity = enabled ? '1' : '0.4';
-            document.getElementById('btn-pan').style.opacity = enabled ? '1' : '0.4';
-            document.getElementById('btn-rotate').style.pointerEvents = enabled ? 'auto' : 'none';
-            document.getElementById('btn-pan').style.pointerEvents = enabled ? 'auto' : 'none';
+            // 不再禁用旋转和平移按钮，允许用户在测量模式下直接切换
+            // document.getElementById('btn-rotate').disabled = !enabled;
+            // document.getElementById('btn-pan').disabled = !enabled;
+            document.getElementById('btn-rotate').style.opacity = enabled ? '1' : '0.6';
+            document.getElementById('btn-pan').style.opacity = enabled ? '1' : '0.6';
+            // document.getElementById('btn-rotate').style.pointerEvents = enabled ? 'auto' : 'none';
+            // document.getElementById('btn-pan').style.pointerEvents = enabled ? 'auto' : 'none';
         }
 
         function updateMeasureUI() {
@@ -861,6 +940,7 @@
             setActiveAreaMeasurement(created.id);
             areaStatusElement.textContent = `已生成面积：${created.areaValue.toFixed(2)} m²`;
             clearAreaDraft();
+            isAreaMeasurementCompleted = true; // 标记面积测量已完成
         });
 
         areaClearButton.addEventListener('click', (e) => {
