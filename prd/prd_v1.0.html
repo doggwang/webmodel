@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SketchUp Web Viewer v1.0 - 产品需求文档 (PRD)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; line-height: 1.6; color: #333; }
+        .sidebar { position: fixed; left: 0; top: 0; bottom: 0; width: 260px; background: #f8f9fa; border-right: 1px solid #e9ecef; padding: 2rem 1rem; overflow-y: auto; }
+        .content { margin-left: 260px; padding: 3rem 5%; max-width: 1200px; }
+        h1 { font-size: 2.25rem; font-weight: 800; margin-bottom: 2rem; color: #1a1a1a; border-bottom: 4px solid #f97316; display: inline-block; }
+        h2 { font-size: 1.5rem; font-weight: 700; margin-top: 3rem; margin-bottom: 1.5rem; color: #f97316; display: flex; align-items: center; }
+        h2::before { content: ""; display: inline-block; width: 4px; height: 1.5rem; background: #f97316; margin-right: 0.75rem; border-radius: 2px; }
+        h3 { font-size: 1.25rem; font-weight: 600; margin-top: 2rem; margin-bottom: 1rem; color: #444; }
+        .nav-link { display: block; padding: 0.5rem 1rem; color: #4b5563; text-decoration: none; border-radius: 0.375rem; transition: all 0.2s; font-size: 0.95rem; }
+        .nav-link:hover { background: #fee2e2; color: #f97316; }
+        .table-auto { width: 100%; border-collapse: collapse; margin-bottom: 1.5rem; }
+        .table-auto th, .table-auto td { border: 1px solid #e5e7eb; padding: 0.75rem; text-align: left; }
+        .table-auto th { background: #f9fafb; font-weight: 600; color: #374151; }
+        .badge { display: inline-block; padding: 0.25rem 0.5rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 500; }
+        .badge-high { background: #fee2e2; color: #ef4444; }
+        .badge-mid { background: #fef3c7; color: #d97706; }
+        .feature-module { background: #fff; border: 1px solid #e5e7eb; border-radius: 0.75rem; padding: 1.5rem; margin-bottom: 2rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="mb-8">
+            <div class="text-2xl font-black text-orange-500 mb-2">SU-WEB</div>
+            <div class="text-xs text-gray-400">VERSION 1.0.0</div>
+        </div>
+        <nav>
+            <a href="#info" class="nav-link">项目基本信息</a>
+            <a href="#background" class="nav-link">一、需求背景</a>
+            <a href="#goals" class="nav-link">二、需求目标</a>
+            <a href="#users" class="nav-link">三、用户与场景</a>
+            <a href="#features" class="nav-link">四、需求功能清单</a>
+            <a href="#details" class="nav-link">五、详细方案 (带原型)</a>
+            <a href="#exception" class="nav-link">六、异常与边界</a>
+        </nav>
+    </div>
+
+    <div class="content">
+        <section id="info" class="mb-12">
+            <h1>SketchUp Web Viewer v1.0</h1>
+            <div class="grid grid-cols-2 gap-4 mt-4">
+                <div class="p-4 bg-gray-50 rounded-lg border border-gray-100">
+                    <div class="text-sm text-gray-500">状态</div>
+                    <div class="font-bold text-orange-600">方案确认中</div>
+                </div>
+                <div class="p-4 bg-gray-50 rounded-lg border border-gray-100">
+                    <div class="text-sm text-gray-500">最后更新</div>
+                    <div class="font-bold">2024-03-26</div>
+                </div>
+            </div>
+        </section>
+
+        <section id="background">
+            <h2>一、需求背景</h2>
+            <p class="mb-4">在建筑、室内设计等行业，设计师向甲方汇报方案时，常面临以下痛点：</p>
+            <ul class="list-disc ml-6 space-y-2 text-gray-600">
+                <li><strong>查看门槛高</strong>：甲方电脑通常未安装 SketchUp，手机端官方 Viewer 操作繁琐且加载慢。</li>
+                <li><strong>沟通效率低</strong>：传统的截图或视频无法让甲方自由探索空间，导致沟通中对尺寸、指标的理解偏差。</li>
+                <li><strong>设备限制</strong>：大型模型在移动端容易卡顿甚至崩溃，无法随时随地进行演示。</li>
+            </ul>
+        </section>
+
+        <section id="goals">
+            <h2>二、需求目标</h2>
+            <table class="table-auto">
+                <thead>
+                    <tr>
+                        <th>目标类型</th>
+                        <th>描述</th>
+                        <th>衡量指标</th>
+                        <th>目标值</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>用户体验</td>
+                        <td>甲方打开链接即可查看模型</td>
+                        <td>首屏加载时间</td>
+                        <td>5秒内 (100MB内模型)</td>
+                    </tr>
+                    <tr>
+                        <td>沟通效率</td>
+                        <td>关键指标在 3D 模型中直观呈现</td>
+                        <td>点击热点准确率</td>
+                        <td>100%</td>
+                    </tr>
+                    <tr>
+                        <td>系统稳定性</td>
+                        <td>确保移动端不因模型过大而崩溃</td>
+                        <td>解析成功率</td>
+                        <td>> 98%</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <section id="users">
+            <h2>三、用户与场景</h2>
+            <h3>典型用户旅程 (User Journey Map)</h3>
+            <table class="table-auto">
+                <thead>
+                    <tr>
+                        <th>阶段</th>
+                        <th>用户行为</th>
+                        <th>触点</th>
+                        <th>痛点/需求</th>
+                        <th>产品机会点</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>上传分享</strong></td>
+                        <td>设计师上传 .skp 文件并设置有效期</td>
+                        <td>PC 管理端</td>
+                        <td>模型太大，上传慢；担心方案泄露</td>
+                        <td>自动轻量化 + 密码/有效期分享</td>
+                    </tr>
+                    <tr>
+                        <td><strong>甲方接收</strong></td>
+                        <td>甲方点击链接或扫码</td>
+                        <td>微信/浏览器</td>
+                        <td>不想下 App；加载太慢会失去耐心</td>
+                        <td>Web 端直接渲染 + 进度条反馈</td>
+                    </tr>
+                    <tr>
+                        <td><strong>汇报查看</strong></td>
+                        <td>在模型中旋转缩放，点击 3D 标签</td>
+                        <td>手机/平板/PC</td>
+                        <td>找不到设计师说的重点；不知道房间面积</td>
+                        <td>3D 热点标签 + 场景(Scenes)切换</td>
+                    </tr>
+                    <tr>
+                        <td><strong>尺寸对齐</strong></td>
+                        <td>甲方自行测量过道宽度</td>
+                        <td>测量工具</td>
+                        <td>怕操作太难，点不准</td>
+                        <td>点击模型表面两点完成测量</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <section id="features">
+            <h2>四、需求功能清单</h2>
+            <div class="space-y-4">
+                <div class="feature-module">
+                    <div class="flex justify-between items-center mb-4">
+                        <span class="font-bold text-lg">1. 模型轻量化与上传</span>
+                        <span class="badge badge-high">P0 (核心)</span>
+                    </div>
+                    <ul class="list-disc ml-6 text-sm text-gray-600">
+                        <li>支持 .skp 格式直接上传</li>
+                        <li>自动转为 glTF/Draco 压缩格式</li>
+                        <li>超过 500MB 文件自动报错拒绝</li>
+                    </ul>
+                </div>
+                <div class="feature-module">
+                    <div class="flex justify-between items-center mb-4">
+                        <span class="font-bold text-lg">2. 查看器交互控制</span>
+                        <span class="badge badge-high">P0 (核心)</span>
+                    </div>
+                    <ul class="list-disc ml-6 text-sm text-gray-600">
+                        <li>默认：单指/左键 旋转</li>
+                        <li>平移模式：通过悬浮按钮切换，激活后可平移视角</li>
+                        <li>场景(Scenes)列表：底部或侧边显示 SU 预设场景，点击跳转</li>
+                        <li>支持距离测量与面积测量双模式切换</li>
+                    </ul>
+                </div>
+                <div class="feature-module">
+                    <div class="flex justify-between items-center mb-4">
+                        <span class="font-bold text-lg">3. 3D 热点标签</span>
+                        <span class="badge badge-mid">P1 (重要)</span>
+                    </div>
+                    <ul class="list-disc ml-6 text-sm text-gray-600">
+                        <li>在 3D 空间中显示悬浮图标</li>
+                        <li>点击弹出信息面板（面积、材质备注、图片）</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <section id="details">
+            <h2>五、详细方案</h2>
+            <div class="feature-module">
+                <h3>5.1 测量工具交互逻辑</h3>
+                <div class="flex gap-8 mt-4">
+                    <div class="flex-1 text-sm text-gray-600">
+                        <p class="mb-2"><strong>触发流程：</strong></p>
+                        <ol class="list-decimal ml-6 space-y-1">
+                            <li>用户点击顶部工具栏的【测量】图标。</li>
+                            <li>光标变为十字准心（Crosshair），提示“请选择起点”。</li>
+                            <li>进入测量模式后锁定镜头操作，点击动作只用于选择模型点位。</li>
+                            <li>点击模型表面第一个点后提示“请选择终点”，并显示首个锚点。</li>
+                            <li>点击第二个点，系统通过射线命中模型面，连接两点显示物理距离。</li>
+                            <li>测量完成后线段与长度标签持续保留，并按 M1、M2... 自动编号。</li>
+                            <li>点击任一测量线会出现删除按钮，用户可按需删除单条测量数据。</li>
+                            <li>切换至【面积测量】后，按点选方式绘制多边形，3 个点起算、4 点及以上自动做平面拟合后计算面积。</li>
+                            <li>面积结果按 A1、A2... 编号持久保留，采用红色边线显示，点击可选中并删除。</li>
+                            <li>“点击面计算面积”能力归入后续版本，本版不在界面展示。</li>
+                        </ol>
+                    </div>
+                    <div class="w-80 bg-gray-100 rounded border border-dashed border-gray-300 flex items-center justify-center text-xs text-gray-400">
+                        <iframe src="../prototype/prototype_v1.0.html?focus=btn-measure&sandbox=true" style="width:100%; height:300px; border:none;"></iframe>
+                    </div>
+                </div>
+            </div>
+
+            <div class="feature-module">
+                <h3>5.2 3D 标签点交互说明</h3>
+                <div class="flex gap-8 mt-4">
+                    <div class="flex-1 text-sm text-gray-600">
+                        <p class="mb-2"><strong>交互规则：</strong></p>
+                        <ul class="list-disc ml-6 space-y-1">
+                            <li><strong>视觉引导</strong>：标签点锚定在模型指定面上，随视角旋转实时同步位置。</li>
+                            <li><strong>点击反馈</strong>：点击圆点，弹出信息面板，包含数据指标与文字描述。</li>
+                            <li><strong>自动对齐</strong>：弹出框位置自动避让遮挡物。</li>
+                            <li><strong>关闭方式</strong>：点击面板右上角关闭按钮，或点击模型空白处。</li>
+                        </ul>
+                    </div>
+                    <div class="w-80 bg-gray-100 rounded border border-dashed border-gray-300 flex items-center justify-center text-xs text-gray-400">
+                        <iframe src="../prototype/prototype_v1.0.html?focus=label-layer&sandbox=true" style="width:100%; height:300px; border:none;"></iframe>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="exception">
+            <h2>六、异常与边界处理</h2>
+            <ul class="list-disc ml-6 space-y-2 text-gray-600">
+                <li><strong>网络中断</strong>：加载模型过程中断网，显示“连接超时，请检查网络后重试”并提供刷新按钮。</li>
+                <li><strong>设备性能不足</strong>：检测到显存不足时，提示“当前模型复杂度较高，建议使用电脑端查看”。</li>
+                <li><strong>链接过期</strong>：点击已过期的链接，显示“该分享链接已失效”。</li>
+            </ul>
+        </section>
+    </div>
+</body>
+</html>
