@@ -3,20 +3,33 @@ import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import compression from 'compression';
+import rateLimit from 'express-rate-limit';
 import apiRouter from './api';
 import { errorHandler } from './middleware/error';
 import { notFoundHandler } from './middleware/notFound';
 import logger from './utils/logger';
+import config from './config';
 
 const app = express();
 
 // 安全中间件
 app.use(helmet());
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+  origin: config.corsOrigin,
   credentials: true,
 }));
 app.use(compression());
+
+// 速率限制中间件
+const limiter = rateLimit({
+  windowMs: config.rateLimitWindow,
+  max: config.rateLimitMax,
+  message: 'Too many requests from this IP, please try again later.',
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+app.use(limiter);
 
 // 请求体解析
 app.use(express.json({ limit: '50mb' }));

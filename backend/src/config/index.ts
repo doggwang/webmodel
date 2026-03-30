@@ -54,6 +54,19 @@ const rawConfig = {
   rateLimitMax: process.env.RATE_LIMIT_MAX ? parseInt(process.env.RATE_LIMIT_MAX) : undefined,
 };
 
-const config = configSchema.parse(rawConfig);
+let config;
+try {
+  config = configSchema.parse(rawConfig);
+} catch (error) {
+  if (error instanceof z.ZodError) {
+    console.error('❌ Configuration validation failed:');
+    error.errors.forEach((err) => {
+      console.error(`  ${err.path.join('.')}: ${err.message}`);
+    });
+    console.error('\nPlease check your environment variables and try again.');
+    process.exit(1);
+  }
+  throw error;
+}
 
 export default config;
