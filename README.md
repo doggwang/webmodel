@@ -39,6 +39,29 @@
 - Docker和Docker Compose
 - Node.js 18+（仅本地开发需要）
 
+### 环境变量配置
+
+在启动服务之前，需要配置环境变量：
+
+1. 复制环境变量示例文件：
+   ```bash
+   cp .env.example .env
+   ```
+
+2. 编辑.env文件，设置实际的密码和密钥：
+   ```bash
+   # 数据库配置
+   POSTGRES_PASSWORD=your_secure_password_here
+
+   # MinIO配置
+   MINIO_ROOT_PASSWORD=your_secure_minio_password_here
+   MINIO_ACCESS_KEY=minioadmin
+   MINIO_SECRET_KEY=your_secure_minio_secret_key_here
+
+   # JWT配置
+   JWT_SECRET=your_secure_jwt_secret_here
+   ```
+
 ### 启动开发环境
 
 ```bash
@@ -46,13 +69,17 @@
 git clone <repository-url>
 cd su-web-viewer
 
+# 配置环境变量（如果尚未配置）
+cp .env.example .env
+# 编辑.env文件设置实际值
+
 # 启动所有服务
 docker-compose up -d
 
 # 访问应用
 # 前端：http://localhost:3000
 # 后端API：http://localhost:3001/api
-# MinIO控制台：http://localhost:9001 (用户名：minioadmin，密码：minioadmin123)
+# MinIO控制台：http://localhost:9001 (用户名：minioadmin，密码：${MINIO_ROOT_PASSWORD})
 ```
 
 ### 本地开发
