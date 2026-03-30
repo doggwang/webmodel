@@ -5,44 +5,160 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SketchUp Web Viewer v1.0 - 产品需求文档 (PRD)</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <script>
+        mermaid.initialize({ 
+            startOnLoad: true,
+            theme: 'base',
+            themeVariables: {
+                primaryColor: '#e0e7ff',
+                primaryTextColor: '#1e1b4b',
+                primaryBorderColor: '#6366f1',
+                lineColor: '#94a3b8',
+                secondaryColor: '#f1f5f9',
+                tertiaryColor: '#ffffff',
+                background: '#ffffff',
+                mainBkg: '#f8fafc',
+                nodeBorder: '#cbd5e1',
+                clusterBkg: '#f1f5f9',
+                clusterBorder: '#94a3b8',
+                titleColor: '#0f172a',
+                edgeLabelBackground: '#ffffff',
+                altBkg: '#fef3c7',
+                altTextColor: '#78350f',
+                altBorderColor: '#d97706',
+                altClusterBkg: '#fef3c7',
+                altClusterBorder: '#d97706',
+                fillType0: '#dbeafe',
+                fillType1: '#dcfce7',
+                fillType2: '#fce7f3',
+                fillType3: '#fef3c7',
+                fillType4: '#e0e7ff',
+                fillType5: '#fee2e2',
+                fillType6: '#ccfbf1',
+                fillType7: '#f3e8ff'
+            },
+            flowchart: { 
+                useMaxWidth: false, 
+                htmlLabels: true,
+                curve: 'basis'
+            }
+        });
+    </script>
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; line-height: 1.6; color: #333; }
-        .sidebar { position: fixed; left: 0; top: 0; bottom: 0; width: 260px; background: #f8f9fa; border-right: 1px solid #e9ecef; padding: 2rem 1rem; overflow-y: auto; }
-        .content { margin-left: 260px; padding: 3rem 5%; max-width: 1200px; }
+        .sidebar { position: fixed; left: 0; top: 0; bottom: 0; width: 260px; background: #f8f9fa; border-right: 1px solid #e9ecef; padding: 2rem 1rem; overflow-y: auto; transition: transform 0.3s ease; z-index: 1000; }
+        .sidebar.closed { transform: translateX(-100%); }
+        .mobile-header { display: none; position: fixed; top: 0; left: 0; right: 0; height: 60px; background: #fff; border-bottom: 1px solid #e9ecef; z-index: 999; align-items: center; padding: 0 1rem; }
+        .mobile-menu-btn { display: none; background: none; border: none; font-size: 1.5rem; cursor: pointer; padding: 0.5rem; color: #f97316; }
+        .overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 998; }
+        .overlay.active { display: block; }
+        .content { margin-left: 260px; padding: 3rem 5%; max-width: 1200px; transition: margin-left 0.3s ease; }
+        .content.expanded { margin-left: 0; }
         h1 { font-size: 2.25rem; font-weight: 800; margin-bottom: 2rem; color: #1a1a1a; border-bottom: 4px solid #f97316; display: inline-block; }
         h2 { font-size: 1.5rem; font-weight: 700; margin-top: 3rem; margin-bottom: 1.5rem; color: #f97316; display: flex; align-items: center; }
         h2::before { content: ""; display: inline-block; width: 4px; height: 1.5rem; background: #f97316; margin-right: 0.75rem; border-radius: 2px; }
         h3 { font-size: 1.25rem; font-weight: 600; margin-top: 2rem; margin-bottom: 1rem; color: #444; }
-        .nav-link { display: block; padding: 0.5rem 1rem; color: #4b5563; text-decoration: none; border-radius: 0.375rem; transition: all 0.2s; font-size: 0.95rem; }
-        .nav-link:hover { background: #fee2e2; color: #f97316; }
+        .nav-link { display: block; padding: 0.75rem 1rem; color: #4b5563; text-decoration: none; border-radius: 0.375rem; transition: all 0.2s; font-size: 0.95rem; min-height: 44px; line-height: 1.5; }
+        .nav-link:hover { background: #fed7aa; color: #f97316; }
         .table-auto { width: 100%; border-collapse: collapse; margin-bottom: 1.5rem; }
         .table-auto th, .table-auto td { border: 1px solid #e5e7eb; padding: 0.75rem; text-align: left; }
         .table-auto th { background: #f9fafb; font-weight: 600; color: #374151; }
         .badge { display: inline-block; padding: 0.25rem 0.5rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 500; }
-        .badge-high { background: #fee2e2; color: #ef4444; }
-        .badge-mid { background: #fef3c7; color: #d97706; }
+        .badge-high { background: #fee2e2; color: #f97316; }
+        .badge-mid { background: #fed7aa; color: #ea580c; }
         .feature-module { background: #fff; border: 1px solid #e5e7eb; border-radius: 0.75rem; padding: 1.5rem; margin-bottom: 2rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .mermaid { background: #fff; padding: 1.5rem; border-radius: 0.75rem; border: 1px solid #e5e7eb; overflow-x: auto; position: relative; }
+        .mermaid-container { position: relative; max-height: 600px; overflow-y: auto; overflow-x: auto; }
+        .mermaid-zoom-controls { position: sticky; top: 0.5rem; right: 0.5rem; display: flex; gap: 0.5rem; z-index: 10; background: rgba(255,255,255,0.95); padding: 0.25rem; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .mermaid-zoom-btn { width: 32px; height: 32px; background: #fff; border: 1px solid #e5e7eb; border-radius: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1rem; color: #6b7280; transition: all 0.2s; }
+        .mermaid-zoom-btn:hover { background: #f97316; color: #fff; border-color: #f97316; }
+        .mermaid-zoom-btn:active { transform: scale(0.95); }
+        .mermaid-content { transition: transform 0.3s ease; transform-origin: top left; min-width: fit-content; }
+        .iframe-container { position: relative; width: 100%; height: 300px; background: #f3f4f6; border-radius: 0.5rem; overflow: hidden; }
+        .iframe-container iframe { width: 100%; height: 100%; border: none; }
+        .iframe-container.error { display: flex; align-items: center; justify-content: center; background: #fef2f2; border: 2px dashed #ef4444; }
+        .iframe-error { text-align: center; color: #991b1b; padding: 1rem; }
+        .iframe-error-icon { font-size: 2rem; margin-bottom: 0.5rem; }
+        .back-to-top { display: none; position: fixed; bottom: 2rem; right: 2rem; width: 50px; height: 50px; background: #f97316; color: white; border: none; border-radius: 50%; cursor: pointer; font-size: 1.5rem; box-shadow: 0 2px 8px rgba(0,0,0,0.2); z-index: 997; transition: all 0.3s ease; }
+        .back-to-top:hover { background: #ea580c; transform: translateY(-2px); }
+        .back-to-top.visible { display: flex; align-items: center; justify-content: center; }
+        
+        /* 文本溢出处理 */
+        .text-truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .text-wrap { word-wrap: break-word; overflow-wrap: break-word; hyphens: auto; }
+        .line-clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        .line-clamp-3 { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+        
+        /* 响应式设计 */
+        @media (max-width: 1024px) {
+            .sidebar { width: 220px; }
+            .content { margin-left: 220px; padding: 2rem 4%; }
+            h1 { font-size: 1.875rem; }
+            h2 { font-size: 1.25rem; }
+        }
+        
+        @media (max-width: 768px) {
+            .sidebar { transform: translateX(-100%); }
+            .sidebar.open { transform: translateX(0); }
+            .mobile-header { display: flex; }
+            .mobile-menu-btn { display: block; }
+            .content { margin-left: 0; padding: 5rem 1.5rem 1.5rem; }
+            h1 { font-size: 1.5rem; }
+            h2 { font-size: 1.125rem; }
+            h3 { font-size: 1rem; }
+            .table-auto { font-size: 0.875rem; }
+            .table-auto th, .table-auto td { padding: 0.5rem; }
+            .feature-module { padding: 1rem; }
+            .back-to-top { bottom: 1rem; right: 1rem; width: 44px; height: 44px; font-size: 1.25rem; }
+        }
+        
+        @media (max-width: 480px) {
+            .content { padding: 5rem 1rem 1rem; }
+            h1 { font-size: 1.25rem; }
+            h2 { font-size: 1rem; }
+            .feature-module { padding: 0.75rem; }
+            .grid.grid-cols-2 { grid-template-columns: 1fr; }
+        }
+        
+        /* 打印样式 */
+        @media print {
+            .sidebar { display: none; }
+            .content { margin-left: 0; padding: 0; }
+            .mermaid { page-break-inside: avoid; }
+        }
     </style>
 </head>
 <body>
-    <div class="sidebar">
+    <div class="mobile-header">
+        <button class="mobile-menu-btn" onclick="toggleSidebar()">☰</button>
+        <div class="text-xl font-bold text-orange-500">SU-WEB</div>
+    </div>
+    
+    <div class="overlay" onclick="toggleSidebar()"></div>
+    
+    <div class="sidebar" id="sidebar">
         <div class="mb-8">
             <div class="text-2xl font-black text-orange-500 mb-2">SU-WEB</div>
             <div class="text-xs text-gray-400">VERSION 1.0.0</div>
         </div>
         <nav>
-            <a href="#info" class="nav-link">项目基本信息</a>
-            <a href="#background" class="nav-link">一、需求背景</a>
-            <a href="#goals" class="nav-link">二、需求目标</a>
-            <a href="#users" class="nav-link">三、用户与场景</a>
-            <a href="#features" class="nav-link">四、需求功能清单</a>
-            <a href="#details" class="nav-link">五、详细方案 (带原型)</a>
-            <a href="#exception" class="nav-link">六、异常与边界</a>
+            <a href="#info" class="nav-link" onclick="closeSidebar()">项目基本信息</a>
+            <a href="#boundary" class="nav-link" onclick="closeSidebar()">0. 产品边界</a>
+            <a href="#background" class="nav-link" onclick="closeSidebar()">一、需求背景</a>
+            <a href="#goals" class="nav-link" onclick="closeSidebar()">二、需求目标</a>
+            <a href="#users" class="nav-link" onclick="closeSidebar()">三、用户与场景</a>
+            <a href="#features" class="nav-link" onclick="closeSidebar()">四、需求功能清单</a>
+            <a href="#details" class="nav-link" onclick="closeSidebar()">五、详细方案 (带原型)</a>
+            <a href="#acceptance" class="nav-link" onclick="closeSidebar()">六、验收标准</a>
+            <a href="#exception" class="nav-link" onclick="closeSidebar()">七、异常与边界</a>
+            <a href="#flowcharts" class="nav-link" onclick="closeSidebar()">八、业务流程图</a>
         </nav>
     </div>
 
     <div class="content">
-        <section id="info" class="mb-12">
+
+        <section id="info">
             <h1>SketchUp Web Viewer v1.0</h1>
             <div class="grid grid-cols-2 gap-4 mt-4">
                 <div class="p-4 bg-gray-50 rounded-lg border border-gray-100">
@@ -52,6 +168,68 @@
                 <div class="p-4 bg-gray-50 rounded-lg border border-gray-100">
                     <div class="text-sm text-gray-500">最后更新</div>
                     <div class="font-bold">2026-03-26</div>
+                </div>
+            </div>
+
+            <div class="mt-8 p-6 bg-orange-50 rounded-xl border-2 border-orange-200">
+                <h3 class="text-xl font-bold text-orange-800 mb-4">快速开始（5分钟阅读）</h3>
+                <div class="space-y-3 text-gray-700">
+                    <p><strong>产品定位：</strong>v1.0 是一个完整的"上传-转换-分享-viewer"闭环产品，设计师上传 .skp 文件后，甲方通过链接在浏览器中查看 3D 模型。</p>
+                    <p><strong>核心功能：</strong>模型上传、分享链接生成、3D查看器、测量工具、3D热点、场景切换。</p>
+                    <p><strong>验收标准：</strong>首屏加载 ≤ 5秒（100MB内）、热点点击准确率 100%、解析成功率 > 98%。</p>
+                    <p><strong>重要限制：</strong>最大支持 500MB 文件、不支持模型编辑、不支持用户系统、不支持协作功能。</p>
+                    <p><strong>详细文档：</strong>请查看下方各章节了解完整需求细节。</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="boundary">
+            <h2>0. 产品边界</h2>
+
+            <div class="mb-6 p-4 bg-orange-50 rounded-lg border-l-4 border-orange-500">
+                <h4 class="font-bold text-orange-800 mb-2">关键要点</h4>
+                <ul class="text-sm text-gray-700 space-y-1">
+                    <li>• v1.0 是完整闭环产品，包含上传、转换、分享、查看全流程</li>
+                    <li>• 最大支持 500MB .skp 文件，自动转换为 glTF/Draco 格式</li>
+                    <li>• 不支持模型编辑、用户系统、协作功能</li>
+                    <li>• 核心交付物：设计师上传 → 生成链接 → 甲方查看</li>
+                </ul>
+            </div>
+
+            <div class="feature-module">
+                <h3>v1.0 产品范围定义</h3>
+                <p class="mb-4 text-gray-600">v1.0 是一个完整的"上传-转换-分享-viewer"闭环产品，而非单纯的查看器工具。</p>
+                
+                <div class="grid grid-cols-2 gap-6 mt-6">
+                    <div>
+                        <h4 class="font-bold text-lg mb-3 text-orange-500">包含范围</h4>
+                        <ul class="list-disc ml-6 space-y-2 text-gray-600">
+                            <li><strong>模型上传</strong>：支持 .skp 格式文件上传，自动转换为 glTF/Draco 压缩格式</li>
+                            <li><strong>分享设置</strong>：设置有效期、密码保护、生成分享链接</li>
+                            <li><strong>3D 查看器</strong>：Web 端直接渲染，支持旋转、平移、缩放</li>
+                            <li><strong>测量工具</strong>：距离测量、面积测量，结果保留并编号</li>
+                            <li><strong>3D 热点</strong>：点击显示信息面板，支持面积、材质、图片信息</li>
+                            <li><strong>场景切换</strong>：预设场景快速切换，支持客餐厅、主卧等场景</li>
+                            <li><strong>异常处理</strong>：加载失败、链接过期、设备性能不足等异常场景</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-lg mb-3 text-red-500">不包含范围</h4>
+                        <ul class="list-disc ml-6 space-y-2 text-gray-600">
+                            <li><strong>模型编辑</strong>：不支持在线编辑 SketchUp 模型</li>
+                            <li><strong>多文件管理</strong>：不支持批量上传、文件夹管理</li>
+                            <li><strong>用户系统</strong>：不支持用户注册、登录、权限管理</li>
+                            <li><strong>协作功能</strong>：不支持多人协作、评论、标注</li>
+                            <li><strong>导出功能</strong>：不支持导出为其他格式（如图片、PDF）</li>
+                            <li><strong>后台管理</strong>：不支持后台配置场景、热点数据（v1.0 为硬编码）</li>
+                            <li><strong>支付功能</strong>：不支持付费、订阅、高级功能</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="mt-6 p-4 bg-orange-50 rounded-lg border border-orange-200">
+                    <h4 class="font-bold text-orange-700 mb-2">v1.0 核心交付物</h4>
+                    <p class="text-gray-700">一个可独立运行的 Web 应用，设计师上传 .skp 文件后，可生成分享链接，甲方通过链接在浏览器中查看 3D 模型、使用测量工具、查看 3D 热点信息。</p>
                 </div>
             </div>
         </section>
@@ -68,36 +246,52 @@
 
         <section id="goals">
             <h2>二、需求目标</h2>
-            <table class="table-auto">
-                <thead>
-                    <tr>
-                        <th>目标类型</th>
-                        <th>描述</th>
-                        <th>衡量指标</th>
-                        <th>目标值</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>用户体验</td>
-                        <td>甲方打开链接即可查看模型</td>
-                        <td>首屏加载时间</td>
-                        <td>5秒内 (100MB内模型)</td>
-                    </tr>
-                    <tr>
-                        <td>沟通效率</td>
-                        <td>关键指标在 3D 模型中直观呈现</td>
-                        <td>点击热点准确率</td>
-                        <td>100%</td>
-                    </tr>
-                    <tr>
-                        <td>系统稳定性</td>
-                        <td>确保移动端不因模型过大而崩溃</td>
-                        <td>解析成功率</td>
-                        <td>> 98%</td>
-                    </tr>
-                </tbody>
-            </table>
+
+            <div class="mb-6 p-4 bg-orange-50 rounded-lg border-l-4 border-orange-500">
+                <h4 class="font-bold text-orange-800 mb-2">关键指标</h4>
+                <ul class="text-sm text-gray-700 space-y-1">
+                    <li>• <strong>首屏加载：</strong>≤ 5秒（100MB内模型）</li>
+                    <li>• <strong>热点点击准确率：</strong>100%</li>
+                    <li>• <strong>解析成功率：</strong>> 98%</li>
+                    <li>• <strong>移动端帧率：</strong>≥ 30 FPS</li>
+                </ul>
+            </div>
+
+            <details class="mb-6">
+                <summary class="cursor-pointer font-semibold text-gray-700 hover:text-orange-600">查看详细目标表格</summary>
+                <div class="mt-4">
+                    <table class="table-auto">
+                        <thead>
+                            <tr>
+                                <th>目标类型</th>
+                                <th>描述</th>
+                                <th>衡量指标</th>
+                                <th>目标值</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>用户体验</td>
+                                <td>甲方打开链接即可查看模型</td>
+                                <td>首屏加载时间</td>
+                                <td>5秒内 (100MB内模型)</td>
+                            </tr>
+                            <tr>
+                                <td>沟通效率</td>
+                                <td>关键指标在 3D 模型中直观呈现</td>
+                                <td>点击热点准确率</td>
+                                <td>100%</td>
+                            </tr>
+                            <tr>
+                                <td>系统稳定性</td>
+                                <td>确保移动端不因模型过大而崩溃</td>
+                                <td>解析成功率</td>
+                                <td>> 98%</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </details>
         </section>
 
         <section id="users">
@@ -148,45 +342,210 @@
 
         <section id="features">
             <h2>四、需求功能清单</h2>
+
+            <div class="mb-6 p-4 bg-orange-50 rounded-lg border-l-4 border-orange-500">
+                <h4 class="font-bold text-orange-800 mb-2">功能概览</h4>
+                <ul class="text-sm text-gray-700 space-y-1">
+                    <li>• <strong>P0 核心功能（3个）</strong>：模型轻量化与上传、分享链接生成、查看器交互控制</li>
+                    <li>• <strong>P1 重要功能（1个）</strong>：3D 热点标签</li>
+                    <li>• <strong>P2 辅助功能</strong>：测量工具、场景切换等</li>
+                </ul>
+            </div>
+
             <div class="space-y-4">
                 <div class="feature-module">
                     <div class="flex justify-between items-center mb-4">
                         <span class="font-bold text-lg">1. 模型轻量化与上传</span>
                         <span class="badge badge-high">P0 (核心)</span>
                     </div>
-                    <ul class="list-disc ml-6 text-sm text-gray-600">
-                        <li>支持 .skp 格式直接上传</li>
-                        <li>自动转为 glTF/Draco 压缩格式</li>
-                        <li>超过 500MB 文件自动报错拒绝</li>
-                    </ul>
+                    <div class="flex gap-8 mt-4">
+                        <div class="flex-1 text-sm text-gray-600">
+                            <p class="mb-2"><strong>功能描述：</strong></p>
+                            <ul class="list-disc ml-6 space-y-1">
+                                <li>支持 .skp 格式直接上传，拖拽或点击选择文件</li>
+                                <li>自动转为 glTF/Draco 压缩格式，无需用户干预</li>
+                                <li>超过 500MB 文件自动报错拒绝</li>
+                                <li>上传进度实时显示，显示百分比和预计剩余时间</li>
+                                <li>上传完成后自动生成分享链接</li>
+                            </ul>
+                            <p class="mb-2 mt-4"><strong>交互规则：</strong></p>
+                            <ul class="list-disc ml-6 space-y-1">
+                                <li><strong>文件选择</strong>：支持拖拽上传和点击选择，支持多文件上传</li>
+                                <li><strong>格式验证</strong>：上传前验证文件格式，非 .skp 文件立即拒绝</li>
+                                <li><strong>大小限制</strong>：超过 500MB 文件显示错误提示，不允许上传</li>
+                                <li><strong>进度反馈</strong>：显示上传进度条、百分比、预计剩余时间</li>
+                                <li><strong>错误处理</strong>：上传失败时显示错误提示，提供重试按钮</li>
+                            </ul>
+                        </div>
+                        <div class="w-80 bg-gray-100 rounded border border-dashed border-gray-300 relative">
+                            <div class="absolute top-2 right-2 z-10">
+                                <a href="../prototype/upload.html" target="_blank" class="bg-white hover:bg-orange-50 text-orange-600 text-xs px-2 py-1 rounded border border-orange-200 shadow-sm flex items-center gap-1">
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+                                    </svg>
+                                    新标签页打开
+                                </a>
+                            </div>
+                            <div class="iframe-container" id="iframe-upload-1">
+                                <iframe src="../prototype/upload.html?focus=upload-zone&sandbox=true" loading="lazy" onerror="handleIframeError('iframe-upload-1')"></iframe>
+                                <div class="iframe-error" style="display: none;">
+                                    <div class="iframe-error-icon">⚠️</div>
+                                    <div>原型加载失败</div>
+                                    <a href="../prototype/upload.html" target="_blank" class="text-orange-600 underline">在新标签页打开</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
+
                 <div class="feature-module">
                     <div class="flex justify-between items-center mb-4">
-                        <span class="font-bold text-lg">2. 查看器交互控制</span>
+                        <span class="font-bold text-lg">2. 分享链接生成</span>
                         <span class="badge badge-high">P0 (核心)</span>
                     </div>
-                    <ul class="list-disc ml-6 text-sm text-gray-600">
-                        <li>默认：单指/左键 旋转</li>
-                        <li>平移模式：通过悬浮按钮切换，激活后可平移视角</li>
-                        <li>场景(Scenes)列表：底部或侧边显示 SU 预设场景，点击跳转</li>
-                        <li>支持距离测量与面积测量双模式切换</li>
-                    </ul>
+                    <div class="flex gap-8 mt-4">
+                        <div class="flex-1 text-sm text-gray-600">
+                            <p class="mb-2"><strong>功能描述：</strong></p>
+                            <ul class="list-disc ml-6 space-y-1">
+                                <li>上传完成后自动生成唯一分享链接</li>
+                                <li>支持设置有效期（1天/7天/30天/永久）</li>
+                                <li>支持设置访问密码（可选）</li>
+                                <li>支持复制链接到剪贴板</li>
+                                <li>支持生成二维码，方便移动端扫码访问</li>
+                            </ul>
+                            <p class="mb-2 mt-4"><strong>交互规则：</strong></p>
+                            <ul class="list-disc ml-6 space-y-1">
+                                <li><strong>链接生成</strong>：上传完成后3秒内生成分享链接</li>
+                                <li><strong>有效期设置</strong>：默认7天，用户可修改为1天/30天/永久</li>
+                                <li><strong>密码设置</strong>：可选，设置后访问链接需要输入密码</li>
+                                <li><strong>复制链接</strong>：一键复制链接到剪贴板，显示复制成功提示</li>
+                                <li><strong>二维码生成</strong>：自动生成二维码，支持下载图片</li>
+                            </ul>
+                        </div>
+                        <div class="w-80 bg-gray-100 rounded border border-dashed border-gray-300 relative">
+                            <div class="absolute top-2 right-2 z-10">
+                                <a href="../prototype/share.html" target="_blank" class="bg-white hover:bg-orange-50 text-orange-600 text-xs px-2 py-1 rounded border border-orange-200 shadow-sm flex items-center gap-1">
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+                                    </svg>
+                                    新标签页打开
+                                </a>
+                            </div>
+                            <div class="iframe-container" id="iframe-share-1">
+                                <iframe src="../prototype/share.html?focus=share-link&sandbox=true" loading="lazy" onerror="handleIframeError('iframe-share-1')"></iframe>
+                                <div class="iframe-error" style="display: none;">
+                                    <div class="iframe-error-icon">⚠️</div>
+                                    <div>原型加载失败</div>
+                                    <a href="../prototype/share.html" target="_blank" class="text-orange-600 underline">在新标签页打开</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
+
                 <div class="feature-module">
                     <div class="flex justify-between items-center mb-4">
-                        <span class="font-bold text-lg">3. 3D 热点标签</span>
+                        <span class="font-bold text-lg">3. 查看器交互控制</span>
+                        <span class="badge badge-high">P0 (核心)</span>
+                    </div>
+                    <div class="flex gap-8 mt-4">
+                        <div class="flex-1 text-sm text-gray-600">
+                            <p class="mb-2"><strong>功能描述：</strong></p>
+                            <ul class="list-disc ml-6 space-y-1">
+                                <li>默认：单指/左键旋转，双指/右键平移，滚轮缩放</li>
+                                <li>平移模式：通过悬浮按钮切换，激活后可平移视角</li>
+                                <li>场景(Scenes)列表：底部或侧边显示 SU 预设场景，点击跳转</li>
+                                <li>支持距离测量与面积测量双模式切换</li>
+                            </ul>
+                            <p class="mb-2 mt-4"><strong>交互规则：</strong></p>
+                            <ul class="list-disc ml-6 space-y-1">
+                                <li><strong>旋转</strong>：单指/左键拖拽旋转视角</li>
+                                <li><strong>平移</strong>：双指/右键拖拽平移视角，或点击平移按钮切换模式</li>
+                                <li><strong>缩放</strong>：滚轮缩放模型，支持捏合手势</li>
+                                <li><strong>场景切换</strong>：点击场景按钮快速跳转到预设视角</li>
+                                <li><strong>模式切换</strong>：点击旋转/平移按钮切换交互模式</li>
+                            </ul>
+                        </div>
+                        <div class="w-80 bg-gray-100 rounded border border-dashed border-gray-300 relative">
+                            <div class="absolute top-2 right-2 z-10">
+                                <a href="../prototype/prototype_v1.0.html" target="_blank" class="bg-white hover:bg-orange-50 text-orange-600 text-xs px-2 py-1 rounded border border-orange-200 shadow-sm flex items-center gap-1">
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+                                    </svg>
+                                    新标签页打开
+                                </a>
+                            </div>
+                            <div class="iframe-container" id="iframe-viewer-1">
+                                <iframe src="../prototype/prototype_v1.0.html?focus=viewer&sandbox=true" loading="lazy" onerror="handleIframeError('iframe-viewer-1')"></iframe>
+                                <div class="iframe-error" style="display: none;">
+                                    <div class="iframe-error-icon">⚠️</div>
+                                    <div>原型加载失败</div>
+                                    <a href="../prototype/prototype_v1.0.html" target="_blank" class="text-orange-600 underline">在新标签页打开</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="feature-module">
+                    <div class="flex justify-between items-center mb-4">
+                        <span class="font-bold text-lg">4. 3D 热点标签</span>
                         <span class="badge badge-mid">P1 (重要)</span>
                     </div>
-                    <ul class="list-disc ml-6 text-sm text-gray-600">
-                        <li>在 3D 空间中显示悬浮图标</li>
-                        <li>点击弹出信息面板（面积、材质备注、图片）</li>
-                    </ul>
+                    <div class="flex gap-8 mt-4">
+                        <div class="flex-1 text-sm text-gray-600">
+                            <p class="mb-2"><strong>功能描述：</strong></p>
+                            <ul class="list-disc ml-6 space-y-1">
+                                <li>在 3D 空间中显示悬浮图标</li>
+                                <li>点击弹出信息面板（面积、材质备注、图片）</li>
+                            </ul>
+                            <p class="mb-2 mt-4"><strong>交互规则：</strong></p>
+                            <ul class="list-disc ml-6 space-y-1">
+                                <li><strong>视觉引导</strong>：标签点锚定在模型指定面上，随视角旋转实时同步位置</li>
+                                <li><strong>点击反馈</strong>：点击圆点，弹出信息面板，包含数据指标与文字描述</li>
+                                <li><strong>自动对齐</strong>：弹出框位置自动避让遮挡物</li>
+                                <li><strong>关闭方式</strong>：点击面板右上角关闭按钮，或点击模型空白处</li>
+                            </ul>
+                        </div>
+                        <div class="w-80 bg-gray-100 rounded border border-dashed border-gray-300 relative">
+                            <div class="absolute top-2 right-2 z-10">
+                                <a href="../prototype/prototype_v1.0.html" target="_blank" class="bg-white hover:bg-orange-50 text-orange-600 text-xs px-2 py-1 rounded border border-orange-200 shadow-sm flex items-center gap-1">
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+                                    </svg>
+                                    新标签页打开
+                                </a>
+                            </div>
+                            <div class="iframe-container" id="iframe-label-1">
+                                <iframe src="../prototype/prototype_v1.0.html?focus=label-layer&sandbox=true" loading="lazy" onerror="handleIframeError('iframe-label-1')"></iframe>
+                                <div class="iframe-error" style="display: none;">
+                                    <div class="iframe-error-icon">⚠️</div>
+                                    <div>原型加载失败</div>
+                                    <a href="../prototype/prototype_v1.0.html" target="_blank" class="text-orange-600 underline">在新标签页打开</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </section>
 
         <section id="details">
             <h2>五、详细方案</h2>
+
+            <div class="mb-6 p-4 bg-teal-50 rounded-lg border-l-4 border-teal-500">
+                <h4 class="font-bold text-teal-800 mb-2 flex items-center">
+                    <span class="mr-2">⚙️</span> 方案概览
+                </h4>
+                <ul class="text-sm text-gray-700 space-y-1">
+                    <li>• <strong>5.1 测量工具</strong>：距离和面积测量的完整交互流程</li>
+                    <li>• <strong>5.2 3D标签点</strong>：热点的交互规则和显示方式</li>
+                    <li>• <strong>5.3 场景切换</strong>：从SketchUp提取场景并平滑过渡</li>
+                    <li>• <strong>5.4 上传与分享</strong>：文件上传、格式转换、链接生成</li>
+                    <li>• <strong>5.5 数据来源</strong>：v1.0的数据配置方式和限制</li>
+                </ul>
+            </div>
+
             <div class="feature-module">
                 <h3>5.1 测量工具交互逻辑</h3>
                 <div class="flex gap-8 mt-4">
@@ -207,10 +566,25 @@
                             <li>"点击面计算面积"能力归入后续版本，本版不在界面展示。</li>
                         </ol>
                     </div>
-                    <div class="w-80 bg-gray-100 rounded border border-dashed border-gray-300 flex items-center justify-center text-xs text-gray-400">
-                        <iframe src="../prototype/prototype_v1.0.html?focus=btn-measure&sandbox=true" style="width:100%; height:300px; border:none;"></iframe>
+                        <div class="w-80 bg-gray-100 rounded border border-dashed border-gray-300 relative">
+                            <div class="absolute top-2 right-2 z-10">
+                                <a href="../prototype/prototype_v1.0.html" target="_blank" class="bg-white hover:bg-orange-50 text-orange-600 text-xs px-2 py-1 rounded border border-orange-200 shadow-sm flex items-center gap-1">
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+                                    </svg>
+                                    新标签页打开
+                                </a>
+                            </div>
+                            <div class="iframe-container" id="iframe-measure-1">
+                                <iframe src="../prototype/prototype_v1.0.html?focus=btn-measure&sandbox=true" loading="lazy" onerror="handleIframeError('iframe-measure-1')"></iframe>
+                                <div class="iframe-error" style="display: none;">
+                                    <div class="iframe-error-icon">⚠️</div>
+                                    <div>原型加载失败</div>
+                                    <a href="../prototype/prototype_v1.0.html" target="_blank" class="text-orange-600 underline">在新标签页打开</a>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                </div>
             </div>
 
             <div class="feature-module">
@@ -225,21 +599,971 @@
                             <li><strong>关闭方式</strong>：点击面板右上角关闭按钮，或点击模型空白处。</li>
                         </ul>
                     </div>
+                        <div class="w-80 bg-gray-100 rounded border border-dashed border-gray-300 relative">
+                            <div class="absolute top-2 right-2 z-10">
+                                <a href="../prototype/prototype_v1.0.html" target="_blank" class="bg-white hover:bg-orange-50 text-orange-600 text-xs px-2 py-1 rounded border border-orange-200 shadow-sm flex items-center gap-1">
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+                                    </svg>
+                                    新标签页打开
+                                </a>
+                            </div>
+                            <div class="iframe-container" id="iframe-label-2">
+                                <iframe src="../prototype/prototype_v1.0.html?focus=label-layer&sandbox=true" loading="lazy" onerror="handleIframeError('iframe-label-2')"></iframe>
+                                <div class="iframe-error" style="display: none;">
+                                    <div class="iframe-error-icon">⚠️</div>
+                                    <div>原型加载失败</div>
+                                    <a href="../prototype/prototype_v1.0.html" target="_blank" class="text-orange-600 underline">在新标签页打开</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+            </div>
+
+            <div class="feature-module">
+                <h3>5.3 场景切换功能</h3>
+                <div class="flex gap-8 mt-4">
+                    <div class="flex-1 text-sm text-gray-600">
+                        <p class="mb-2"><strong>功能说明：</strong></p>
+                        <ul class="list-disc ml-6 space-y-1">
+                            <li><strong>场景来源</strong>：从 SketchUp 模型中自动提取预设场景（Scenes）</li>
+                            <li><strong>显示位置</strong>：桌面端显示在底部，移动端显示在底部横向滚动</li>
+                            <li><strong>切换方式</strong>：点击场景按钮，相机平滑过渡到预设视角</li>
+                            <li><strong>当前状态</strong>：当前场景按钮高亮显示，其他按钮为默认样式</li>
+                        </ul>
+                        <p class="mb-2 mt-4"><strong>交互规则：</strong></p>
+                        <ul class="list-disc ml-6 space-y-1">
+                            <li><strong>平滑过渡</strong>：点击场景按钮后，相机在1秒内平滑过渡到目标视角</li>
+                            <li><strong>中断机制</strong>：过渡过程中用户可随时中断，切换到其他场景或手动操作</li>
+                            <li><strong>状态同步</strong>：过渡完成后，当前场景按钮自动高亮</li>
+                            <li><strong>移动端优化</strong>：场景按钮支持横向滚动，确保所有场景可访问</li>
+                        </ul>
+                    </div>
+                        <div class="w-80 bg-gray-100 rounded border border-dashed border-gray-300 relative">
+                            <div class="absolute top-2 right-2 z-10">
+                                <a href="../prototype/prototype_v1.0.html" target="_blank" class="bg-white hover:bg-orange-50 text-orange-600 text-xs px-2 py-1 rounded border border-orange-200 shadow-sm flex items-center gap-1">
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+                                    </svg>
+                                    新标签页打开
+                                </a>
+                            </div>
+                            <div class="iframe-container" id="iframe-scene-1">
+                                <iframe src="../prototype/prototype_v1.0.html?focus=scene-buttons&sandbox=true" loading="lazy" onerror="handleIframeError('iframe-scene-1')"></iframe>
+                                <div class="iframe-error" style="display: none;">
+                                    <div class="iframe-error-icon">⚠️</div>
+                                    <div>原型加载失败</div>
+                                    <a href="../prototype/prototype_v1.0.html" target="_blank" class="text-orange-600 underline">在新标签页打开</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+            </div>
+
+            <div class="feature-module">
+                <h3>5.4 上传与分享功能</h3>
+                <div class="flex gap-8 mt-4">
+                    <div class="flex-1 text-sm text-gray-600">
+                        <p class="mb-2"><strong>上传功能：</strong></p>
+                        <ul class="list-disc ml-6 space-y-1">
+                            <li><strong>文件选择</strong>：支持拖拽上传和点击选择，仅支持 .skp 格式</li>
+                            <li><strong>大小限制</strong>：最大支持 500MB，超过则显示错误提示</li>
+                            <li><strong>格式验证</strong>：上传前自动验证文件格式，非 .skp 文件立即拒绝</li>
+                            <li><strong>进度显示</strong>：显示上传进度条、百分比、预计剩余时间</li>
+                            <li><strong>格式转换</strong>：上传完成后自动转换为 glTF/Draco 格式</li>
+                        </ul>
+                        <p class="mb-2 mt-4"><strong>分享功能：</strong></p>
+                        <ul class="list-disc ml-6 space-y-1">
+                            <li><strong>链接生成</strong>：上传和转换完成后自动生成唯一分享链接</li>
+                            <li><strong>有效期设置</strong>：支持 1天/7天/30天/永久，默认7天</li>
+                            <li><strong>密码保护</strong>：可选设置访问密码，设置后访问需要输入密码</li>
+                            <li><strong>复制链接</strong>：一键复制链接到剪贴板，显示成功提示</li>
+                            <li><strong>二维码生成</strong>：自动生成二维码，支持下载图片</li>
+                        </ul>
+                    </div>
+                    <div class="w-80 bg-gray-100 rounded border border-dashed border-gray-300 relative">
+                        <div class="absolute top-2 right-2 z-10">
+                            <a href="../prototype/upload.html" target="_blank" class="bg-white hover:bg-orange-50 text-orange-600 text-xs px-2 py-1 rounded border border-orange-200 shadow-sm flex items-center gap-1">
+                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+                                </svg>
+                                新标签页打开
+                            </a>
+                        </div>
+                        <div class="iframe-container" id="iframe-upload-2">
+                            <iframe src="../prototype/upload.html?focus=upload-zone&sandbox=true" loading="lazy" onerror="handleIframeError('iframe-upload-2')"></iframe>
+                            <div class="iframe-error" style="display: none;">
+                                <div class="iframe-error-icon">⚠️</div>
+                                <div>原型加载失败</div>
+                                <a href="../prototype/upload.html" target="_blank" class="text-orange-600 underline">在新标签页打开</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            <div class="feature-module">
+                <h3>5.5 数据来源与配置</h3>
+                <div class="flex gap-8 mt-4">
+                    <div class="flex-1 text-sm text-gray-600">
+                        <p class="mb-2"><strong>v1.0 数据配置方式：</strong></p>
+                        <ul class="list-disc ml-6 space-y-1">
+                            <li><strong>场景数据</strong>：从 SketchUp 模型中自动提取预设场景（Scenes），无需手动配置</li>
+                            <li><strong>热点数据</strong>：v1.0 采用硬编码方式，在代码中直接定义热点位置和信息</li>
+                            <li><strong>材质信息</strong>：从 SketchUp 模型中自动提取材质名称和属性</li>
+                            <li><strong>面积数据</strong>：在热点配置中手动输入面积数值</li>
+                            <li><strong>图片信息</strong>：在热点配置中手动添加图片URL</li>
+                        </ul>
+                        <p class="mb-2 mt-4"><strong>数据配置流程：</strong></p>
+                        <ol class="list-decimal ml-6 space-y-1">
+                            <li>设计师在 SketchUp 中创建模型并设置场景（Scenes）</li>
+                            <li>上传 .skp 文件到系统</li>
+                            <li>系统自动提取场景数据</li>
+                            <li>开发人员在代码中硬编码热点数据（位置、面积、材质、图片）</li>
+                            <li>用户访问分享链接时，系统加载模型和热点数据</li>
+                        </ol>
+                        <p class="mb-2 mt-4"><strong>v1.0 限制：</strong></p>
+                        <ul class="list-disc ml-6 space-y-1">
+                            <li>不支持后台配置界面，热点数据需要开发人员手动修改代码</li>
+                            <li>不支持从 SketchUp 导出热点数据，需要手动输入</li>
+                            <li>不支持动态修改热点信息，需要重新部署</li>
+                            <li>场景数据完全依赖 SketchUp 中的预设场景</li>
+                        </ul>
+                        <p class="mb-2 mt-4"><strong>后续版本规划：</strong></p>
+                        <ul class="list-disc ml-6 space-y-1">
+                            <li>v1.1：支持从 SketchUp 插件导出热点数据</li>
+                            <li>v1.2：提供后台配置界面，支持在线编辑热点信息</li>
+                            <li>v1.3：支持批量导入热点数据和场景配置</li>
+                        </ul>
+                    </div>
                     <div class="w-80 bg-gray-100 rounded border border-dashed border-gray-300 flex items-center justify-center text-xs text-gray-400">
-                        <iframe src="../prototype/prototype_v1.0.html?focus=label-layer&sandbox=true" style="width:100%; height:300px; border:none;"></iframe>
+                        <div class="text-center p-4">
+                            <div class="mb-2">数据配置示例</div>
+                            <div class="text-left bg-white p-3 rounded text-xs font-mono">
+                                <div class="text-gray-500">// 热点数据配置</div>
+                                <div class="text-blue-600">const hotspots = [</div>
+                                <div class="pl-4 text-green-600">{</div>
+                                <div class="pl-8 text-purple-600">id: "1",</div>
+                                <div class="pl-8 text-purple-600">position: [x,y,z],</div>
+                                <div class="pl-8 text-purple-600">area: "25㎡",</div>
+                                <div class="pl-8 text-purple-600">material: "实木地板",</div>
+                                <div class="pl-8 text-purple-600">image: "url"</div>
+                                <div class="pl-4 text-green-600">}</div>
+                                <div class="text-blue-600">];</div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
         </section>
 
-        <section id="exception">
-            <h2>六、异常与边界处理</h2>
-            <ul class="list-disc ml-6 space-y-2 text-gray-600">
-                <li><strong>网络中断</strong>：加载模型过程中断网，显示“连接超时，请检查网络后重试”并提供刷新按钮。</li>
-                <li><strong>设备性能不足</strong>：检测到显存不足时，提示“当前模型复杂度较高，建议使用电脑端查看”。</li>
-                <li><strong>链接过期</strong>：点击已过期的链接，显示“该分享链接已失效”。</li>
-            </ul>
+        <section id="acceptance">
+            <h2>六、验收标准</h2>
+
+            <div class="mb-6 p-4 bg-orange-50 rounded-lg border-l-4 border-orange-500">
+                <h4 class="font-bold text-orange-800 mb-2">关键验收点</h4>
+                <ul class="text-sm text-gray-700 space-y-1">
+                    <li>• <strong>测试环境：</strong>桌面端 + 移动端，Chrome 90+ / Safari 14+，4G/Wi-Fi，10MB/100MB/500MB文件</li>
+                    <li>• <strong>功能验收：</strong>上传成功率 > 95%、转换成功率 > 98%、首屏加载 ≤ 5秒</li>
+                    <li>• <strong>异常处理：</strong>网络中断、文件过大、格式不支持、链接过期、密码错误、设备性能不足</li>
+                </ul>
+            </div>
+
+            <details class="mb-6">
+                <summary class="cursor-pointer font-semibold text-gray-700 hover:text-orange-600">查看详细验收标准</summary>
+                <div class="mt-4 space-y-6">
+                    <div class="feature-module">
+                        <h3>测试环境定义</h3>
+                        <table class="table-auto">
+                            <thead>
+                                <tr>
+                                    <th>测试维度</th>
+                                    <th>测试条件</th>
+                                    <th>设备范围</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><strong>设备类型</strong></td>
+                                    <td>桌面端 + 移动端</td>
+                                    <td>Windows 10/11, macOS 12+, iOS 15+, Android 10+</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>浏览器</strong></td>
+                                    <td>现代浏览器</td>
+                                    <td>Chrome 90+, Safari 14+, Edge 90+, Firefox 88+</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>网络条件</strong></td>
+                                    <td>4G/Wi-Fi</td>
+                                    <td>下载速度 ≥ 1Mbps</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>文件大小</strong></td>
+                                    <td>小/中/大模型</td>
+                                    <td>10MB / 100MB / 500MB</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="feature-module">
+                        <h3>功能验收标准</h3>
+                        <table class="table-auto">
+                            <thead>
+                                <tr>
+                                    <th>功能模块</th>
+                                    <th>验收指标</th>
+                                    <th>成功标准</th>
+                                    <th>测试方法</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><strong>模型上传</strong></td>
+                                    <td>上传成功率</td>
+                                    <td>> 95%</td>
+                                    <td>上传100个 .skp 文件，统计成功数量</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>格式转换</strong></td>
+                                    <td>转换成功率</td>
+                                    <td>> 98%</td>
+                                    <td>转换100个 .skp 文件，统计成功数量</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>首屏加载</strong></td>
+                                    <td>加载时间</td>
+                                    <td>≤ 5秒 (100MB内)</td>
+                                    <td>从点击链接到模型完全可见的时间</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>热点点击</strong></td>
+                                    <td>点击准确率</td>
+                                    <td>100%</td>
+                                    <td>点击热点10次，每次都能正确弹出信息</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>距离测量</strong></td>
+                                    <td>测量精度</td>
+                                    <td>误差 < 5%</td>
+                                    <td>测量已知距离，对比误差</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>面积测量</strong></td>
+                                    <td>测量精度</td>
+                                    <td>误差 < 10%</td>
+                                    <td>测量已知面积，对比误差</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>移动端性能</strong></td>
+                                    <td>帧率</td>
+                                    <td>≥ 30 FPS</td>
+                                    <td>旋转模型时测量帧率</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>链接分享</strong></td>
+                                    <td>链接生成时间</td>
+                                    <td>≤ 3秒</td>
+                                    <td>从上传完成到链接显示的时间</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="feature-module">
+                        <h3>异常处理验收标准</h3>
+                        <table class="table-auto">
+                            <thead>
+                                <tr>
+                                    <th>异常场景</th>
+                                    <th>触发条件</th>
+                                    <th>预期行为</th>
+                                    <th>验收方法</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><strong>网络中断</strong></td>
+                                    <td>上传/加载时断网</td>
+                                    <td>显示错误提示 + 刷新按钮</td>
+                                    <td>断网后操作，检查提示信息</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>文件过大</strong></td>
+                                    <td>上传 > 500MB 文件</td>
+                                    <td>立即拒绝并提示文件大小限制</td>
+                                    <td>上传超大文件，检查提示信息</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>格式不支持</strong></td>
+                                    <td>上传非 .skp 文件</td>
+                                    <td>拒绝上传并提示支持格式</td>
+                                    <td>上传其他格式，检查提示信息</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>链接过期</strong></td>
+                                    <td>访问已过期链接</td>
+                                    <td>显示过期提示，无法访问模型</td>
+                                    <td>访问过期链接，检查提示信息</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>密码错误</strong></td>
+                                    <td>输入错误密码</td>
+                                    <td>提示密码错误，允许重试</td>
+                                    <td>输入错误密码，检查提示信息</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>设备性能不足</strong></td>
+                                    <td>检测到显存不足</td>
+                                    <td>显示性能警告，建议使用电脑端</td>
+                                    <td>使用低性能设备，检查提示信息</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </details>
         </section>
+
+        <section id="exception">
+            <h2>七、异常与边界处理</h2>
+
+            <div class="mb-6 p-4 bg-red-50 rounded-lg border-l-4 border-red-500">
+                <h4 class="font-bold text-red-800 mb-2 flex items-center">
+                    <span class="mr-2">⚠️</span> 异常处理概览
+                </h4>
+                <ul class="text-sm text-gray-700 space-y-1">
+                    <li>• <strong>网络中断</strong>：显示错误提示 + 刷新按钮</li>
+                    <li>• <strong>设备性能不足</strong>：显示性能警告，建议使用电脑端</li>
+                    <li>• <strong>链接过期</strong>：显示过期提示，无法访问模型</li>
+                    <li>• <strong>文件过大</strong>：超过500MB立即拒绝</li>
+                    <li>• <strong>格式不支持</strong>：非.skp文件立即拒绝</li>
+                </ul>
+            </div>
+
+            <ul class="list-disc ml-6 space-y-2 text-gray-600">
+                <li><strong>网络中断</strong>：加载模型过程中断网，显示"连接超时，请检查网络后重试"并提供刷新按钮。</li>
+                <li><strong>设备性能不足</strong>：检测到显存不足时，提示"当前模型复杂度较高，建议使用电脑端查看"。</li>
+                <li><strong>链接过期</strong>：点击已过期的链接，显示"该分享链接已失效"。</li>
+            </ul>
+
+            <div class="feature-module mt-6">
+                <h3>移动端适配说明</h3>
+                <div class="space-y-4">
+                    <div>
+                        <h4 class="font-semibold text-gray-800 mb-2">📱 布局适配</h4>
+                        <ul class="list-disc ml-6 text-sm text-gray-600 space-y-1">
+                            <li><strong>单列布局</strong>：移动端采用单列垂直布局，所有内容垂直堆叠</li>
+                            <li><strong>全宽组件</strong>：按钮、输入框等组件在移动端占满容器宽度</li>
+                            <li><strong>底部导航</strong>：场景按钮在移动端显示在底部，支持横向滚动</li>
+                            <li><strong>工具栏位置</strong>：测量工具栏在移动端固定在底部，方便单手操作</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h4 class="font-semibold text-gray-800 mb-2">👆 交互适配</h4>
+                        <ul class="list-disc ml-6 text-sm text-gray-600 space-y-1">
+                            <li><strong>触摸目标</strong>：所有可点击元素最小尺寸为44x44px</li>
+                            <li><strong>手势支持</strong>：支持单指旋转、双指平移、捏合缩放</li>
+                            <li><strong>触摸反馈</strong>：点击时显示视觉反馈（高亮、涟漪效果）</li>
+                            <li><strong>悬停状态</strong>：移动端不依赖悬停状态，所有交互通过点击触发</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h4 class="font-semibold text-gray-800 mb-2">📐 尺寸适配</h4>
+                        <ul class="list-disc ml-6 text-sm text-gray-600 space-y-1">
+                            <li><strong>字体大小</strong>：移动端最小字体16px，确保可读性</li>
+                            <li><strong>间距调整</strong>：移动端增加元素间距，避免误触</li>
+                            <li><strong>响应式图片</strong>：根据设备屏幕尺寸加载合适大小的图片</li>
+                            <li><strong>iframe适配</strong>：原型iframe在移动端使用响应式高度</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h4 class="font-semibold text-gray-800 mb-2">⚡ 性能优化</h4>
+                        <ul class="list-disc ml-6 text-sm text-gray-600 space-y-1">
+                            <li><strong>懒加载</strong>：非首屏内容延迟加载</li>
+                            <li><strong>模型优化</strong>：移动端自动降低模型细节级别（LOD）</li>
+                            <li><strong>帧率控制</strong>：移动端目标帧率≥30 FPS</li>
+                            <li><strong>内存管理</strong>：及时释放不用的3D资源，避免内存泄漏</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="flowcharts">
+            <h2>八、业务流程图</h2>
+            
+            <div class="feature-module">
+                <h3>7.1 完整用户旅程流程图</h3>
+                <div class="mermaid-container">
+                    <div class="mermaid-zoom-controls">
+                        <button class="mermaid-zoom-btn" onclick="zoomMermaid(this, 0.1)" title="放大">+</button>
+                        <button class="mermaid-zoom-btn" onclick="zoomMermaid(this, -0.1)" title="缩小">-</button>
+                        <button class="mermaid-zoom-btn" onclick="resetMermaid(this)" title="重置">⟲</button>
+                    </div>
+                    <div class="mermaid-content">
+                        <div class="mermaid">
+flowchart TD
+    A[设计师打开应用] --> B[上传.skp文件]
+    B --> C[验证文件格式和大小]
+    C --> D{验证通过?}
+    D -->|否| E[显示错误提示]
+    D -->|是| F[上传文件]
+    E --> B
+    F --> G[显示上传进度]
+    G --> H[格式转换为glTF/Draco]
+    H --> I[生成分享链接]
+    I --> J[进入分享页面]
+    J --> K[设置有效期和密码]
+    K --> L[复制分享链接]
+    L --> M[发送给甲方]
+    M --> N[甲方打开链接]
+    N --> O{需要密码?}
+    O -->|是| P[输入访问密码]
+    O -->|否| Q[加载3D模型]
+    P --> R{密码正确?}
+    R -->|否| S[显示密码错误]
+    R -->|是| Q
+    S --> P
+    Q --> T{加载成功?}
+    T -->|否| U[显示加载失败<br/>提供刷新]
+    T -->|是| V[显示3D查看器]
+    U --> N
+    V --> W[甲方探索模型]
+    W --> X{使用功能?}
+    X -->|旋转/平移| Y[切换视角]
+    X -->|场景切换| Z[跳转到预设场景]
+    X -->|测量工具| AA[进行距离/面积测量]
+    X -->|3D热点| AB[查看详细信息]
+    Y --> V
+    Z --> V
+    AA --> AC[查看测量结果]
+    AB --> AD[查看面积/材质/图片]
+    AC --> V
+    AD --> V
+    style A fill:#dbeafe,stroke:#3b82f6,stroke-width:2px
+    style B fill:#fef3c7,stroke:#f59e0b,stroke-width:2px
+    style C fill:#e0e7ff,stroke:#6366f1,stroke-width:2px
+    style D fill:#f3e8ff,stroke:#a855f7,stroke-width:2px
+    style E fill:#fee2e2,stroke:#ef4444,stroke-width:2px
+    style F fill:#dcfce7,stroke:#10b981,stroke-width:2px
+    style G fill:#fef3c7,stroke:#f59e0b,stroke-width:2px
+    style H fill:#dcfce7,stroke:#10b981,stroke-width:2px
+    style I fill:#dcfce7,stroke:#10b981,stroke-width:2px
+    style J fill:#dbeafe,stroke:#3b82f6,stroke-width:2px
+    style K fill:#fef3c7,stroke:#f59e0b,stroke-width:2px
+    style L fill:#dcfce7,stroke:#10b981,stroke-width:2px
+    style M fill:#dcfce7,stroke:#10b981,stroke-width:2px
+    style N fill:#dbeafe,stroke:#3b82f6,stroke-width:2px
+    style O fill:#f3e8ff,stroke:#a855f7,stroke-width:2px
+    style P fill:#fef3c7,stroke:#f59e0b,stroke-width:2px
+    style R fill:#f3e8ff,stroke:#a855f7,stroke-width:2px
+    style S fill:#fee2e2,stroke:#ef4444,stroke-width:2px
+    style Q fill:#dcfce7,stroke:#10b981,stroke-width:2px
+    style T fill:#f3e8ff,stroke:#a855f7,stroke-width:2px
+    style U fill:#fee2e2,stroke:#ef4444,stroke-width:2px
+    style V fill:#dbeafe,stroke:#3b82f6,stroke-width:2px
+    style W fill:#fef3c7,stroke:#f59e0b,stroke-width:2px
+    style X fill:#f3e8ff,stroke:#a855f7,stroke-width:2px
+    style Y fill:#e0e7ff,stroke:#6366f1,stroke-width:2px
+    style Z fill:#e0e7ff,stroke:#6366f1,stroke-width:2px
+    style AA fill:#e0e7ff,stroke:#6366f1,stroke-width:2px
+    style AB fill:#e0e7ff,stroke:#6366f1,stroke-width:2px
+    style AC fill:#dcfce7,stroke:#10b981,stroke-width:2px
+    style AD fill:#dcfce7,stroke:#10b981,stroke-width:2px
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="feature-module">
+                <h3>7.2 上传流程图</h3>
+                <div class="mermaid-container">
+                    <div class="mermaid-zoom-controls">
+                        <button class="mermaid-zoom-btn" onclick="zoomMermaid(this, 0.1)" title="放大">+</button>
+                        <button class="mermaid-zoom-btn" onclick="zoomMermaid(this, -0.1)" title="缩小">-</button>
+                        <button class="mermaid-zoom-btn" onclick="resetMermaid(this)" title="重置">⟲</button>
+                    </div>
+                    <div class="mermaid-content">
+                        <div class="mermaid">
+flowchart TD
+    A[打开上传页面] --> B{选择文件方式?}
+    B -->|拖拽文件| C[拖拽到上传区域]
+    B -->|点击选择| D[打开文件选择器]
+    C --> E[验证文件格式]
+    D --> E
+    E --> F{格式正确?}
+    F -->|否| G[显示错误提示<br/>仅支持.skp格式]
+    F -->|是| H[验证文件大小]
+    G --> B
+    H --> I{大小超限?}
+    I -->|是| J[显示错误提示<br/>最大500MB]
+    I -->|否| K[开始上传文件]
+    J --> B
+    K --> L[显示上传进度<br/>百分比+剩余时间]
+    L --> M{上传成功?}
+    M -->|否| N[显示上传失败<br/>提供重试按钮]
+    M -->|是| O[开始格式转换]
+    N --> K
+    O --> P[转换为glTF/Draco]
+    P --> Q{转换成功?}
+    Q -->|否| R[显示转换失败<br/>提供重新上传]
+    Q -->|是| S[生成分享链接]
+    R --> B
+    S --> T[跳转到分享页面]
+    style A fill:#dbeafe,stroke:#3b82f6,stroke-width:2px
+    style B fill:#fef3c7,stroke:#f59e0b,stroke-width:2px
+    style C fill:#fef3c7,stroke:#f59e0b,stroke-width:2px
+    style D fill:#fef3c7,stroke:#f59e0b,stroke-width:2px
+    style E fill:#e0e7ff,stroke:#6366f1,stroke-width:2px
+    style F fill:#f3e8ff,stroke:#a855f7,stroke-width:2px
+    style G fill:#fee2e2,stroke:#ef4444,stroke-width:2px
+    style H fill:#e0e7ff,stroke:#6366f1,stroke-width:2px
+    style I fill:#f3e8ff,stroke:#a855f7,stroke-width:2px
+    style J fill:#fee2e2,stroke:#ef4444,stroke-width:2px
+    style K fill:#dcfce7,stroke:#10b981,stroke-width:2px
+    style L fill:#fef3c7,stroke:#f59e0b,stroke-width:2px
+    style M fill:#f3e8ff,stroke:#a855f7,stroke-width:2px
+    style N fill:#fee2e2,stroke:#ef4444,stroke-width:2px
+    style O fill:#dcfce7,stroke:#10b981,stroke-width:2px
+    style P fill:#fef3c7,stroke:#f59e0b,stroke-width:2px
+    style Q fill:#f3e8ff,stroke:#a855f7,stroke-width:2px
+    style R fill:#fee2e2,stroke:#ef4444,stroke-width:2px
+    style S fill:#dcfce7,stroke:#10b981,stroke-width:2px
+    style T fill:#dbeafe,stroke:#3b82f6,stroke-width:2px
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="feature-module">
+                <h3>7.3 分享流程图</h3>
+                <div class="mermaid-container">
+                    <div class="mermaid-zoom-controls">
+                        <button class="mermaid-zoom-btn" onclick="zoomMermaid(this, 0.1)" title="放大">+</button>
+                        <button class="mermaid-zoom-btn" onclick="zoomMermaid(this, -0.1)" title="缩小">-</button>
+                        <button class="mermaid-zoom-btn" onclick="resetMermaid(this)" title="重置">⟲</button>
+                    </div>
+                    <div class="mermaid-content">
+                        <div class="mermaid">
+flowchart TD
+    A[进入分享页面] --> B[显示分享链接]
+    B --> C{用户操作?}
+    C -->|复制链接| D[复制到剪贴板<br/>显示成功提示]
+    C -->|设置有效期| E[选择有效期]
+    C -->|设置密码| F[开启密码保护]
+    C -->|查看二维码| G[显示二维码]
+    C -->|下载二维码| H[下载二维码图片]
+    C -->|查看模型| I[跳转到查看器]
+    C -->|上传新模型| J[跳转到上传页面]
+    D --> C
+    E --> K{选择有效期?}
+    K -->|1天| L[设置1天有效期]
+    K -->|7天| M[设置7天有效期]
+    K -->|30天| N[设置30天有效期]
+    K -->|永久| O[设置永久有效]
+    L --> P[更新链接配置]
+    M --> P
+    N --> P
+    O --> P
+    P --> C
+    F --> Q[显示密码输入框]
+    Q --> R[输入访问密码]
+    R --> S[保存密码配置]
+    S --> C
+    G --> T[显示二维码图片]
+    T --> C
+    H --> U[下载二维码到本地]
+    U --> C
+    style A fill:#dbeafe,stroke:#3b82f6,stroke-width:2px
+    style B fill:#e0e7ff,stroke:#6366f1,stroke-width:2px
+    style C fill:#f3e8ff,stroke:#a855f7,stroke-width:2px
+    style D fill:#dcfce7,stroke:#10b981,stroke-width:2px
+    style E fill:#fef3c7,stroke:#f59e0b,stroke-width:2px
+    style F fill:#fef3c7,stroke:#f59e0b,stroke-width:2px
+    style G fill:#fef3c7,stroke:#f59e0b,stroke-width:2px
+    style H fill:#fef3c7,stroke:#f59e0b,stroke-width:2px
+    style I fill:#dbeafe,stroke:#3b82f6,stroke-width:2px
+    style J fill:#dbeafe,stroke:#3b82f6,stroke-width:2px
+    style K fill:#f3e8ff,stroke:#a855f7,stroke-width:2px
+    style L fill:#dcfce7,stroke:#10b981,stroke-width:2px
+    style M fill:#dcfce7,stroke:#10b981,stroke-width:2px
+    style N fill:#dcfce7,stroke:#10b981,stroke-width:2px
+    style O fill:#dcfce7,stroke:#10b981,stroke-width:2px
+    style P fill:#dcfce7,stroke:#10b981,stroke-width:2px
+    style Q fill:#e0e7ff,stroke:#6366f1,stroke-width:2px
+    style R fill:#fef3c7,stroke:#f59e0b,stroke-width:2px
+    style S fill:#dcfce7,stroke:#10b981,stroke-width:2px
+    style T fill:#e0e7ff,stroke:#6366f1,stroke-width:2px
+    style U fill:#dcfce7,stroke:#10b981,stroke-width:2px
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="feature-module">
+                <h3>7.4 查看器加载流程图</h3>
+                <div class="mermaid-container">
+                    <div class="mermaid-zoom-controls">
+                        <button class="mermaid-zoom-btn" onclick="zoomMermaid(this, 0.1)" title="放大">+</button>
+                        <button class="mermaid-zoom-btn" onclick="zoomMermaid(this, -0.1)" title="缩小">-</button>
+                        <button class="mermaid-zoom-btn" onclick="resetMermaid(this)" title="重置">⟲</button>
+                    </div>
+                    <div class="mermaid-content">
+                        <div class="mermaid">
+flowchart TD
+    A[打开分享链接] --> B{需要密码?}
+    B -->|是| C[显示密码输入框]
+    B -->|否| D[加载3D模型]
+    C --> E[输入访问密码]
+    E --> F{密码正确?}
+    F -->|否| G[显示密码错误<br/>提示重新输入]
+    F -->|是| D
+    G --> C
+    D --> H{网络状态?}
+    H -->|正常| I[显示加载进度<br/>解析模型数据]
+    H -->|断网| J[显示错误提示<br/>连接超时]
+    I --> K{加载成功?}
+    K -->|是| L[显示3D查看器]
+    K -->|否| M[显示错误信息<br/>文件损坏/格式不支持]
+    J --> N[提供刷新按钮]
+    N --> A
+    L --> O{设备性能?}
+    O -->|充足| P[正常渲染模型]
+    O -->|不足| Q[显示性能警告<br/>建议使用电脑端]
+    P --> R[用户探索模型]
+    Q --> R
+    M --> S[提供刷新按钮]
+    S --> A
+    style A fill:#dbeafe,stroke:#3b82f6,stroke-width:2px
+    style B fill:#f3e8ff,stroke:#a855f7,stroke-width:2px
+    style C fill:#fef3c7,stroke:#f59e0b,stroke-width:2px
+    style D fill:#e0e7ff,stroke:#6366f1,stroke-width:2px
+    style E fill:#fef3c7,stroke:#f59e0b,stroke-width:2px
+    style F fill:#f3e8ff,stroke:#a855f7,stroke-width:2px
+    style G fill:#fee2e2,stroke:#ef4444,stroke-width:2px
+    style H fill:#f3e8ff,stroke:#a855f7,stroke-width:2px
+    style I fill:#fef3c7,stroke:#f59e0b,stroke-width:2px
+    style J fill:#fee2e2,stroke:#ef4444,stroke-width:2px
+    style K fill:#f3e8ff,stroke:#a855f7,stroke-width:2px
+    style L fill:#dcfce7,stroke:#10b981,stroke-width:2px
+    style M fill:#fee2e2,stroke:#ef4444,stroke-width:2px
+    style N fill:#f3e8ff,stroke:#a855f7,stroke-width:2px
+    style O fill:#f3e8ff,stroke:#a855f7,stroke-width:2px
+    style P fill:#dcfce7,stroke:#10b981,stroke-width:2px
+    style Q fill:#fee2e2,stroke:#ef4444,stroke-width:2px
+    style R fill:#dbeafe,stroke:#3b82f6,stroke-width:2px
+    style S fill:#f3e8ff,stroke:#a855f7,stroke-width:2px
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="feature-module">
+                <h3>7.5 距离测量功能流程图</h3>
+                <div class="mermaid-container">
+                    <div class="mermaid-zoom-controls">
+                        <button class="mermaid-zoom-btn" onclick="zoomMermaid(this, 0.1)" title="放大">+</button>
+                        <button class="mermaid-zoom-btn" onclick="zoomMermaid(this, -0.1)" title="缩小">-</button>
+                        <button class="mermaid-zoom-btn" onclick="resetMermaid(this)" title="重置">⟲</button>
+                    </div>
+                    <div class="mermaid-content">
+                        <div class="mermaid">
+flowchart TD
+    A[点击测距按钮] --> B[进入测量模式]
+    B --> C[锁定镜头操作<br/>光标变为十字准心]
+    C --> D[点击模型表面第一个点]
+    D --> E[显示锚点<br/>提示请选择终点]
+    E --> F[点击模型表面第二个点]
+    F --> G[计算两点距离<br/>显示测量线]
+    G --> H[生成测量结果M1<br/>线段与标签持续保留]
+    H --> I{用户操作?}
+    I -->|继续测量| J[点击模型表面]
+    J --> D
+    I -->|点击旋转/平移| K[自动保存并切换视角]
+    I -->|点击面积测量| L[自动保存并切换模式]
+    I -->|点击删除按钮| M[删除单条测量]
+    I -->|点击删除所有| N[清除所有测量结果]
+    K --> O[退出测量模式<br/>切换到旋转/平移]
+    L --> P[退出测量模式<br/>切换到面积测量]
+    M --> Q[移除DOM元素<br/>从数组删除]
+    N --> R[清除所有测量<br/>重置数组]
+    O --> S[恢复镜头控制]
+    P --> T[显示面积测量面板]
+    Q --> U[隐藏删除按钮]
+    R --> U[隐藏删除按钮]
+    S --> V[可自由旋转/平移]
+    T --> W[锁定镜头<br/>清空草稿]
+    style A fill:#dbeafe,stroke:#3b82f6,stroke-width:2px
+    style B fill:#fef3c7,stroke:#f59e0b,stroke-width:2px
+    style C fill:#fef3c7,stroke:#f59e0b,stroke-width:2px
+    style D fill:#fef3c7,stroke:#f59e0b,stroke-width:2px
+    style E fill:#fef3c7,stroke:#f59e0b,stroke-width:2px
+    style F fill:#fef3c7,stroke:#f59e0b,stroke-width:2px
+    style G fill:#dcfce7,stroke:#10b981,stroke-width:2px
+    style H fill:#e0e7ff,stroke:#6366f1,stroke-width:2px
+    style I fill:#f3e8ff,stroke:#a855f7,stroke-width:2px
+    style J fill:#fef3c7,stroke:#f59e0b,stroke-width:2px
+    style K fill:#dcfce7,stroke:#10b981,stroke-width:2px
+    style L fill:#dcfce7,stroke:#10b981,stroke-width:2px
+    style M fill:#fee2e2,stroke:#ef4444,stroke-width:2px
+    style N fill:#fee2e2,stroke:#ef4444,stroke-width:2px
+    style O fill:#dcfce7,stroke:#10b981,stroke-width:2px
+    style P fill:#fef3c7,stroke:#f59e0b,stroke-width:2px
+    style Q fill:#fee2e2,stroke:#ef4444,stroke-width:2px
+    style R fill:#fee2e2,stroke:#ef4444,stroke-width:2px
+    style S fill:#dcfce7,stroke:#10b981,stroke-width:2px
+    style T fill:#fef3c7,stroke:#f59e0b,stroke-width:2px
+    style U fill:#fee2e2,stroke:#ef4444,stroke-width:2px
+    style V fill:#dcfce7,stroke:#10b981,stroke-width:2px
+    style W fill:#fef3c7,stroke:#f59e0b,stroke-width:2px
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="feature-module">
+                <h3>7.6 面积测量功能流程图</h3>
+                <div class="mermaid-container">
+                    <div class="mermaid-zoom-controls">
+                        <button class="mermaid-zoom-btn" onclick="zoomMermaid(this, 0.1)" title="放大">+</button>
+                        <button class="mermaid-zoom-btn" onclick="zoomMermaid(this, -0.1)" title="缩小">-</button>
+                        <button class="mermaid-zoom-btn" onclick="resetMermaid(this)" title="重置">⟲</button>
+                    </div>
+                    <div class="mermaid-content">
+                        <div class="mermaid">
+flowchart TD
+    A[点击面积测量按钮] --> B[进入面积测量模式]
+    B --> C[锁定镜头操作<br/>清空草稿]
+    C --> D[点击模型表面选点]
+    D --> E[显示草稿点<br/>实时绘制虚线]
+    E --> F{已选点数?}
+    F -->|少于3个点| G[继续选点]
+    F -->|3个或以上| H[可完成或切换视角]
+    G --> D
+    H --> I{用户操作?}
+    I -->|点击完成按钮| J[生成面积结果A1<br/>红色边线+徽章]
+    I -->|点击旋转/平移| K[自动保存并切换视角]
+    I -->|点击测距| L[自动保存并切换模式]
+    I -->|点击删除所有| M[清除所有测量]
+    J --> N[面积结果持续保留<br/>A1,A2...编号]
+    N --> O{用户操作?}
+    O -->|点击红色边线/徽章| P[选中并显示删除按钮]
+    O -->|点击删除按钮| Q[删除单条面积测量]
+    O -->|点击删除所有| R[清除所有面积测量]
+    K --> S[退出测量模式<br/>切换到旋转/平移]
+    L --> T[退出测量模式<br/>切换到距离测量]
+    M --> U[清除所有测量<br/>重置数组]
+    P --> V[显示删除按钮]
+    Q --> W[移除DOM元素<br/>从数组删除]
+    R --> X[清除所有面积<br/>重置数组]
+    S --> Y[恢复镜头控制]
+    T --> Z[显示距离测量面板]
+    U --> AA[隐藏删除按钮]
+    V --> AB[隐藏删除按钮]
+    W --> AC[隐藏删除按钮]
+    X --> AD[隐藏删除按钮]
+    Y --> AE[可自由旋转/平移]
+    Z --> AF[锁定镜头<br/>清空草稿]
+    style A fill:#dbeafe,stroke:#3b82f6,stroke-width:2px
+    style B fill:#fef3c7,stroke:#f59e0b,stroke-width:2px
+    style C fill:#fef3c7,stroke:#f59e0b,stroke-width:2px
+    style D fill:#fef3c7,stroke:#f59e0b,stroke-width:2px
+    style E fill:#fef3c7,stroke:#f59e0b,stroke-width:2px
+    style F fill:#fef3c7,stroke:#f59e0b,stroke-width:2px
+    style G fill:#e0e7ff,stroke:#6366f1,stroke-width:2px
+    style H fill:#f3e8ff,stroke:#a855f7,stroke-width:2px
+    style I fill:#fef3c7,stroke:#f59e0b,stroke-width:2px
+    style J fill:#dcfce7,stroke:#10b981,stroke-width:2px
+    style K fill:#dcfce7,stroke:#10b981,stroke-width:2px
+    style L fill:#dcfce7,stroke:#10b981,stroke-width:2px
+    style M fill:#fee2e2,stroke:#ef4444,stroke-width:2px
+    style N fill:#fce7f3,stroke:#ec4899,stroke-width:2px
+    style O fill:#fce7f3,stroke:#ec4899,stroke-width:2px
+    style P fill:#fee2e2,stroke:#ef4444,stroke-width:2px
+    style Q fill:#fee2e2,stroke:#ef4444,stroke-width:2px
+    style R fill:#fee2e2,stroke:#ef4444,stroke-width:2px
+    style S fill:#dcfce7,stroke:#10b981,stroke-width:2px
+    style T fill:#dcfce7,stroke:#10b981,stroke-width:2px
+    style U fill:#fee2e2,stroke:#ef4444,stroke-width:2px
+    style V fill:#fee2e2,stroke:#ef4444,stroke-width:2px
+    style W fill:#fee2e2,stroke:#ef4444,stroke-width:2px
+    style X fill:#fee2e2,stroke:#ef4444,stroke-width:2px
+    style Y fill:#dcfce7,stroke:#10b981,stroke-width:2px
+    style Z fill:#fef3c7,stroke:#f59e0b,stroke-width:2px
+    style AA fill:#fee2e2,stroke:#ef4444,stroke-width:2px
+    style AB fill:#fee2e2,stroke:#ef4444,stroke-width:2px
+    style AC fill:#fee2e2,stroke:#ef4444,stroke-width:2px
+    style AD fill:#fee2e2,stroke:#ef4444,stroke-width:2px
+    style AE fill:#dcfce7,stroke:#10b981,stroke-width:2px
+    style AF fill:#fef3c7,stroke:#f59e0b,stroke-width:2px
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="feature-module">
+                <h3>7.7 3D标签点交互流程图</h3>
+                <div class="mermaid-container">
+                    <div class="mermaid-zoom-controls">
+                        <button class="mermaid-zoom-btn" onclick="zoomMermaid(this, 0.1)" title="放大">+</button>
+                        <button class="mermaid-zoom-btn" onclick="zoomMermaid(this, -0.1)" title="缩小">-</button>
+                        <button class="mermaid-zoom-btn" onclick="resetMermaid(this)" title="重置">⟲</button>
+                    </div>
+                    <div class="mermaid-content">
+                        <div class="mermaid">
+flowchart TD
+    A[用户打开查看器] --> B[3D标签点显示在模型上]
+    B --> C[标签点随视角旋转<br/>实时同步位置]
+    C --> D{用户操作?}
+    D -->|点击标签点| E[显示信息面板]
+    D -->|点击空白处| F[关闭信息面板]
+    D -->|旋转视角| C
+    E --> G[显示面积/材质/图片信息]
+    G --> H{关闭方式?}
+    H -->|点击关闭按钮| I[隐藏面板]
+    H -->|点击空白处| F
+    I --> J[恢复标签点显示]
+    F --> J
+    style A fill:#dcfce7,stroke:#10b981,stroke-width:2px
+    style B fill:#fef3c7,stroke:#f59e0b,stroke-width:2px
+    style C fill:#fef3c7,stroke:#f59e0b,stroke-width:2px
+    style D fill:#e0e7ff,stroke:#6366f1,stroke-width:2px
+    style E fill:#fef3c7,stroke:#f59e0b,stroke-width:2px
+    style F fill:#fef3c7,stroke:#f59e0b,stroke-width:2px
+    style G fill:#e0e7ff,stroke:#6366f1,stroke-width:2px
+    style H fill:#f3e8ff,stroke:#a855f7,stroke-width:2px
+    style I fill:#fef3c7,stroke:#f59e0b,stroke-width:2px
+    style J fill:#dcfce7,stroke:#10b981,stroke-width:2px
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="feature-module">
+                <h3>7.8 异常处理流程图</h3>
+                <div class="mermaid-container">
+                    <div class="mermaid-zoom-controls">
+                        <button class="mermaid-zoom-btn" onclick="zoomMermaid(this, 0.1)" title="放大">+</button>
+                        <button class="mermaid-zoom-btn" onclick="zoomMermaid(this, -0.1)" title="缩小">-</button>
+                        <button class="mermaid-zoom-btn" onclick="resetMermaid(this)" title="重置">⟲</button>
+                    </div>
+                    <div class="mermaid-content">
+                        <div class="mermaid">
+flowchart TD
+    A[开始加载模型] --> B{网络状态?}
+    B -->|正常| C[显示加载进度<br/>解析模型数据]
+    B -->|断网| D[显示错误提示<br/>连接超时]
+    C --> E{加载成功?}
+    E -->|是| F[显示3D查看器]
+    E -->|否| G[显示错误信息<br/>文件损坏/格式不支持]
+    D --> H[提供刷新按钮]
+    H --> A
+    F --> I{设备性能?}
+    I -->|充足| J[正常渲染模型]
+    I -->|不足| K[显示性能警告<br/>建议使用电脑端]
+    J --> L[用户正常使用]
+    K --> M[降低渲染质量<br/>简化模型]
+    L --> N[用户继续使用]
+    M --> N[用户选择降级或退出]
+    G --> O{链接状态?}
+    O -->|有效| P[正常访问模型]
+    O -->|过期| Q[显示过期提示<br/>链接已失效]
+    P --> R[用户正常使用]
+    Q --> S[无法访问模型]
+    style A fill:#dbeafe,stroke:#3b82f6,stroke-width:2px
+    style B fill:#e0e7ff,stroke:#6366f1,stroke-width:2px
+    style C fill:#fef3c7,stroke:#f59e0b,stroke-width:2px
+    style D fill:#fee2e2,stroke:#ef4444,stroke-width:2px
+    style E fill:#e0e7ff,stroke:#6366f1,stroke-width:2px
+    style F fill:#dcfce7,stroke:#10b981,stroke-width:2px
+    style G fill:#e0e7ff,stroke:#6366f1,stroke-width:2px
+    style H fill:#fee2e2,stroke:#ef4444,stroke-width:2px
+    style I fill:#e0e7ff,stroke:#6366f1,stroke-width:2px
+    style J fill:#dcfce7,stroke:#10b981,stroke-width:2px
+    style K fill:#fef9c3,stroke:#eab308,stroke-width:2px
+    style L fill:#dcfce7,stroke:#10b981,stroke-width:2px
+    style M fill:#fef9c3,stroke:#eab308,stroke-width:2px
+    style N fill:#dcfce7,stroke:#10b981,stroke-width:2px
+    style O fill:#e0e7ff,stroke:#6366f1,stroke-width:2px
+    style P fill:#dcfce7,stroke:#10b981,stroke-width:2px
+    style Q fill:#fee2e2,stroke:#ef4444,stroke-width:2px
+    style R fill:#dcfce7,stroke:#10b981,stroke-width:2px
+    style S fill:#dcfce7,stroke:#10b981,stroke-width:2px
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
     </div>
+
+    <button class="back-to-top" id="backToTop" onclick="scrollToTop()">↑</button>
+
+    <script>
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.querySelector('.overlay');
+            const content = document.querySelector('.content');
+            
+            sidebar.classList.toggle('open');
+            overlay.classList.toggle('active');
+            content.classList.toggle('expanded');
+        }
+
+        function closeSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.querySelector('.overlay');
+            const content = document.querySelector('.content');
+            
+            sidebar.classList.remove('open');
+            overlay.classList.remove('active');
+            content.classList.remove('expanded');
+        }
+
+        function scrollToTop() {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        }
+
+        function handleIframeError(iframeId) {
+            const container = document.getElementById(iframeId);
+            const iframe = container.querySelector('iframe');
+            const errorDiv = container.querySelector('.iframe-error');
+            
+            if (iframe && errorDiv) {
+                iframe.style.display = 'none';
+                errorDiv.style.display = 'block';
+                container.classList.add('error');
+            }
+        }
+
+        function zoomMermaid(button, delta) {
+            const container = button.closest('.mermaid-container');
+            const content = container.querySelector('.mermaid-content');
+            const currentScale = parseFloat(content.dataset.scale) || 1;
+            const newScale = Math.max(0.5, Math.min(2, currentScale + delta));
+            content.style.transform = `scale(${newScale})`;
+            content.dataset.scale = newScale;
+        }
+
+        function resetMermaid(button) {
+            const container = button.closest('.mermaid-container');
+            const content = container.querySelector('.mermaid-content');
+            content.style.transform = 'scale(1)';
+            content.dataset.scale = 1;
+        }
+
+        window.addEventListener('scroll', function() {
+            const backToTop = document.getElementById('backToTop');
+            if (window.pageYOffset > 300) {
+                backToTop.classList.add('visible');
+            } else {
+                backToTop.classList.remove('visible');
+            }
+        });
+    </script>
 </body>
 </html>

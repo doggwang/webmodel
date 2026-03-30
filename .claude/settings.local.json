@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//d/Project/vibe coding/webmodel/$HOME/**)",
+      "Bash(claude plugin:*)",
+      "Read(//d/Project/vibe coding/webmodel/$HOME/.claude/plugins/cache/**)",
+      "Bash(rm -rf superpowers)",
+      "Bash(find . -type f -name *superpower*)",
+      "Read(//d/Project/vibe coding/webmodel/$HOME/.claude/plugins/**)",
+      "Bash(find . -type f -name *.json)",
+      "Bash(xargs grep:*)",
+      "Read(//d/Project/vibe coding/webmodel/**)",
+      "Bash(find . -type d -name *superpower*)",
+      "Bash(rm -rf superpowers-temp)"
+    ]
+  }
+}

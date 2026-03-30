@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>SketchUp Web Viewer - 移动端布局</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            overflow: hidden;
+            touch-action: none;
+        }
+        .mobile-container {
+            max-width: 430px;
+            height: 100vh;
+            margin: 0 auto;
+            position: relative;
+        }
+        .tool-btn {
+            width: 44px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.95);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            transition: all 0.2s;
+        }
+        .tool-btn:active {
+            transform: scale(0.95);
+        }
+        .tool-btn.active {
+            background: #f97316;
+            color: white;
+        }
+        .scene-btn {
+            padding: 8px 12px;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.95);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            font-size: 14px;
+            white-space: nowrap;
+            transition: all 0.2s;
+        }
+        .scene-btn.active {
+            background: #f97316;
+            color: white;
+        }
+        .hotspot {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #f97316;
+            border: 3px solid white;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 14px;
+            cursor: pointer;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2); }
+            50% { transform: scale(1.1); box-shadow: 0 4px 12px rgba(249, 115, 22, 0.4); }
+        }
+        .info-panel {
+            position: absolute;
+            bottom: 100px;
+            left: 16px;
+            right: 16px;
+            background: rgba(255, 255, 255, 0.98);
+            border-radius: 16px;
+            padding: 16px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            z-index: 100;
+        }
+        .measurement-badge {
+            position: absolute;
+            background: #3b82f6;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: bold;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <div class="mobile-container bg-gray-200 relative overflow-hidden">
+        <!-- 3D 查看器区域（模拟） -->
+        <div class="absolute inset-0 bg-gradient-to-br from-gray-300 to-gray-400 flex items-center justify-center">
+            <!-- 模拟3D模型 -->
+            <div class="relative">
+                <div class="w-64 h-64 bg-white/20 rounded-3xl transform rotate-12 backdrop-blur-sm border border-white/30"></div>
+                <div class="w-48 h-48 bg-white/30 rounded-2xl transform -rotate-6 absolute top-8 left-8 backdrop-blur-sm border border-white/40"></div>
+                
+                <!-- 热点 -->
+                <div class="hotspot absolute top-4 right-4">1</div>
+                <div class="hotspot absolute bottom-8 left-4">2</div>
+                
+                <!-- 测量结果 -->
+                <div class="measurement-badge absolute top-20 left-20">M1: 3.2m</div>
+                <div class="measurement-badge absolute bottom-20 right-16">M2: 2.8m</div>
+            </div>
+        </div>
+
+        <!-- 顶部工具栏 -->
+        <div class="absolute top-4 left-4 right-4 flex justify-between items-center z-50">
+            <!-- 返回按钮 -->
+            <button class="tool-btn">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                </svg>
+            </button>
+
+            <!-- 标题 -->
+            <div class="bg-white/95 px-4 py-2 rounded-full shadow-lg">
+                <span class="text-sm font-semibold text-gray-800">我的客厅</span>
+            </div>
+
+            <!-- 更多按钮 -->
+            <button class="tool-btn">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
+                </svg>
+            </button>
+        </div>
+
+        <!-- 右侧工具栏 -->
+        <div class="absolute right-4 top-1/2 transform -translate-y-1/2 flex flex-col space-y-3 z-50">
+            <!-- 旋转按钮 -->
+            <button class="tool-btn active" id="rotate-btn">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+            </button>
+
+            <!-- 平移按钮 -->
+            <button class="tool-btn" id="pan-btn">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+                </svg>
+            </button>
+
+            <!-- 更多工具按钮 -->
+            <button class="tool-btn" id="more-tools-btn">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
+                </svg>
+            </button>
+        </div>
+
+        <!-- 更多工具面板（默认隐藏） -->
+        <div class="absolute right-16 top-1/2 transform -translate-y-1/2 bg-white rounded-xl shadow-lg p-2 hidden" id="more-tools-panel">
+            <div class="flex flex-col space-y-2">
+                <!-- 测距按钮 -->
+                <button class="tool-btn" id="measure-btn" style="width: 40px; height: 40px;">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                    </svg>
+                </button>
+
+                <!-- 面积测量按钮 -->
+                <button class="tool-btn" id="area-btn" style="width: 40px; height: 40px;">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z" />
+                    </svg>
+                </button>
+
+                <!-- 删除所有测量按钮 -->
+                <button class="tool-btn" id="delete-all-btn" style="width: 40px; height: 40px;">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- 底部场景栏 -->
+        <div class="absolute bottom-4 left-4 right-4 z-50">
+            <!-- 场景切换按钮 -->
+            <div class="flex space-x-2 overflow-x-auto pb-2 scrollbar-hide">
+                <button class="scene-btn active">客餐厅</button>
+                <button class="scene-btn">主卧</button>
+                <button class="scene-btn">次卧</button>
+                <button class="scene-btn">厨房</button>
+                <button class="scene-btn">卫生间</button>
+                <button class="scene-btn">阳台</button>
+            </div>
+        </div>
+
+        <!-- 热点信息面板（默认隐藏） -->
+        <div class="info-panel hidden" id="hotspot-panel">
+            <div class="flex justify-between items-start mb-3">
+                <div>
+                    <h3 class="font-bold text-gray-800 text-lg">客厅地板</h3>
+                    <p class="text-sm text-gray-500">热点 #1</p>
+                </div>
+                <button class="text-gray-400 hover:text-gray-600" onclick="document.getElementById('hotspot-panel').classList.add('hidden')">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            
+            <div class="space-y-3">
+                <!-- 面积信息 -->
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5z" />
+                        </svg>
+                    </div>
+                    <div>
+                        <p class="text-xs text-gray-500">面积</p>
+                        <p class="font-semibold text-gray-800">35.6㎡</p>
+                    </div>
+                </div>
+
+                <!-- 材质信息 -->
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
+                        </svg>
+                    </div>
+                    <div>
+                        <p class="text-xs text-gray-500">材质</p>
+                        <p class="font-semibold text-gray-800">实木地板</p>
+                    </div>
+                </div>
+
+                <!-- 图片信息 -->
+                <div class="mt-3">
+                    <p class="text-xs text-gray-500 mb-2">效果图</p>
+                    <div class="w-full h-32 bg-gray-200 rounded-lg overflow-hidden">
+                        <div class="w-full h-full bg-gradient-to-br from-orange-200 to-orange-300 flex items-center justify-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-orange-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 测量模式提示 -->
+        <div class="absolute top-20 left-4 right-4 bg-white/95 px-4 py-3 rounded-xl shadow-lg z-50 hidden" id="measure-hint">
+            <div class="flex items-center space-x-3">
+                <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                </div>
+                <div class="flex-1">
+                    <p class="text-sm font-semibold text-gray-800">测量模式</p>
+                    <p class="text-xs text-gray-500">点击模型表面两点进行测量</p>
+                </div>
+                <button class="text-gray-400" onclick="document.getElementById('measure-hint').classList.add('hidden')">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 更多工具面板切换
+        const moreToolsBtn = document.getElementById('more-tools-btn');
+        const moreToolsPanel = document.getElementById('more-tools-panel');
+        
+        moreToolsBtn.addEventListener('click', () => {
+            moreToolsPanel.classList.toggle('hidden');
+            moreToolsBtn.classList.toggle('active');
+        });
+
+        // 工具按钮切换
+        const toolBtns = document.querySelectorAll('.tool-btn');
+        toolBtns.forEach(btn => {
+            if (btn.id !== 'more-tools-btn') {
+                btn.addEventListener('click', () => {
+                    // 移除所有激活状态
+                    toolBtns.forEach(b => b.classList.remove('active'));
+                    // 激活当前按钮
+                    btn.classList.add('active');
+                    
+                    // 显示测量提示
+                    if (btn.id === 'measure-btn' || btn.id === 'area-btn') {
+                        document.getElementById('measure-hint').classList.remove('hidden');
+                    } else {
+                        document.getElementById('measure-hint').classList.add('hidden');
+                    }
+                });
+            }
+        });
+
+        // 场景按钮切换
+        const sceneBtns = document.querySelectorAll('.scene-btn');
+        sceneBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                sceneBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+            });
+        });
+
+        // 热点点击
+        document.querySelectorAll('.hotspot').forEach(hotspot => {
+            hotspot.addEventListener('click', () => {
+                document.getElementById('hotspot-panel').classList.remove('hidden');
+            });
+        });
+
+        // 点击空白处关闭面板
+        document.querySelector('.mobile-container').addEventListener('click', (e) => {
+            if (!e.target.closest('.hotspot') && !e.target.closest('.info-panel') && !e.target.closest('.tool-btn')) {
+                document.getElementById('hotspot-panel').classList.add('hidden');
+                moreToolsPanel.classList.add('hidden');
+                moreToolsBtn.classList.remove('active');
+            }
+        });
+    </script>
+</body>
+</html>
