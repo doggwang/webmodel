@@ -1,248 +1,4 @@
-<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SketchUp Web Viewer - 高保真原型 v1.0</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
-    <style>
-        body, html { margin: 0; padding: 0; overflow: hidden; height: 100%; font-family: sans-serif; }
-        #canvas-container { width: 100%; height: 100%; background: #ffffff; position: relative; }
-        .su-ui-panel { pointer-events: auto; }
-        .hidden-ui { display: none !important; }
-        .active-tool { background-color: #f97316 !important; color: white !important; }
-        .label-dot { width: 16px; height: 16px; background: #f97316; border: 2px solid white; border-radius: 50%; cursor: pointer; position: absolute; transform: translate(-50%, -50%); box-shadow: 0 0 10px rgba(0,0,0,0.3); pointer-events: auto; transition: transform 0.2s; }
-        .label-dot:hover { transform: translate(-50%, -50%) scale(1.2); }
-        .label-popup { position: absolute; background: white; border: 1px solid #e5e7eb; border-radius: 8px; padding: 12px; width: 220px; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.1); pointer-events: auto; z-index: 100; display: none; }
-        .measure-line { position: absolute; height: 2px; background: #3b82f6; transform-origin: left center; pointer-events: none; display: none; }
-        .measure-point { width: 8px; height: 8px; background: #3b82f6; border: 1px solid white; border-radius: 50%; position: absolute; transform: translate(-50%, -50%); pointer-events: none; display: none; }
-        .measurement-item-line { position: absolute; height: 3px; background: #2563eb; transform-origin: left center; border-radius: 9999px; box-shadow: 0 0 0 1px rgba(255,255,255,0.8); pointer-events: auto; cursor: pointer; }
-        .measurement-item-line.active { background: #f97316; box-shadow: 0 0 0 2px rgba(255,255,255,0.9); }
-        .measurement-area-line { position: absolute; height: 3px; background: #dc2626; transform-origin: left center; border-radius: 9999px; box-shadow: 0 0 0 1px rgba(255,255,255,0.9); pointer-events: auto; cursor: pointer; }
-        .measurement-area-line.active { background: #f97316; box-shadow: 0 0 0 2px rgba(255,255,255,0.95); }
-        .measurement-item-point { position: absolute; width: 10px; height: 10px; border-radius: 50%; border: 2px solid white; background: #2563eb; transform: translate(-50%, -50%); pointer-events: none; }
-        .measurement-area-point { position: absolute; width: 10px; height: 10px; border-radius: 50%; border: 2px solid white; background: #dc2626; transform: translate(-50%, -50%); pointer-events: none; }
-        .measurement-item-label { position: absolute; transform: translate(-50%, -140%); background: rgba(17, 24, 39, 0.92); color: white; font-size: 13px; font-weight: 600; line-height: 1; padding: 6px 8px; border-radius: 9999px; white-space: nowrap; pointer-events: none; }
-        .measurement-area-badge { position: absolute; transform: translate(-50%, -150%); background: rgba(30, 64, 175, 0.95); color: white; font-size: 13px; font-weight: 600; line-height: 1; padding: 7px 10px; border-radius: 9999px; white-space: nowrap; border: 1px solid rgba(255,255,255,0.7); box-shadow: 0 6px 14px rgba(0,0,0,0.2); pointer-events: auto; cursor: pointer; }
-        .measurement-area-badge.active { background: rgba(249, 115, 22, 0.96); }
-        .area-draft-line { position: absolute; height: 2px; background: rgba(220, 38, 38, 0.75); transform-origin: left center; pointer-events: none; border-radius: 9999px; }
-        .area-draft-line.closing { border-top: 2px dashed rgba(220, 38, 38, 0.85); background: transparent; height: 0; }
-        .area-draft-point { position: absolute; width: 9px; height: 9px; border-radius: 50%; border: 2px solid white; background: rgba(220, 38, 38, 0.95); transform: translate(-50%, -50%); pointer-events: none; }
-        .measurement-delete-btn { position: absolute; transform: translate(-50%, -50%); background: #ef4444; color: white; border: none; border-radius: 9999px; font-size: 11px; font-weight: 600; padding: 6px 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.18); cursor: pointer; display: none; pointer-events: auto; }
-        #canvas-container.measuring { cursor: crosshair; }
-        #loading-overlay { position: fixed; inset: 0; background: white; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 1000; transition: opacity 0.5s ease; }
-        .progress-bar { width: 240px; height: 4px; background: #f3f4f6; border-radius: 2px; overflow: hidden; margin-top: 20px; }
-        .progress-fill { width: 0%; height: 100%; background: #f97316; transition: width 0.3s; }
-    </style>
-</head>
-<body data-page-id="viewer-page" data-spec-node="#prototype-spec">
 
-    <!-- 加载遮罩 -->
-    <div id="loading-overlay" data-viewer-state="loading">
-        <div class="text-2xl font-black text-orange-500 mb-2">SU-WEB</div>
-        <div class="text-sm text-gray-500">正在处理模型数据...</div>
-        <div class="progress-bar">
-            <div id="progress-fill" class="progress-fill"></div>
-        </div>
-    </div>
-
-    <!-- 3D 画布容器 -->
-    <div id="canvas-container" data-ui-role="viewer-shell">
-        <div id="measurement-layer" class="absolute inset-0 pointer-events-none"></div>
-        <button id="measurement-delete-btn" class="measurement-delete-btn">删除</button>
-
-        <!-- 3D 标签点 (模拟) -->
-        <div id="label-layer" class="absolute inset-0 pointer-events-none" data-ui-role="hotspot-layer">
-            <div id="label-1" class="label-dot" data-hotspot-id="master-bedroom-space" style="left: 45%; top: 40%;" onclick="event.stopPropagation(); showPopup(1)"></div>
-            <div id="label-2" class="label-dot" data-hotspot-id="balcony-view" style="left: 55%; top: 60%;" onclick="event.stopPropagation(); showPopup(2)"></div>
-            
-            <!-- 测量元素 -->
-            <div id="measure-p1" class="measure-point"></div>
-            <div id="measure-p2" class="measure-point"></div>
-            <div id="measure-line" class="measure-line"></div>
-        </div>
-
-        <!-- 标签弹窗 -->
-        <div id="popup-1" class="label-popup" data-hotspot-panel="master-bedroom-space" style="left: 46%; top: 30%;">
-            <div class="flex justify-between items-start mb-2">
-                <div class="font-bold text-gray-800">主卧空间</div>
-                <button onclick="closePopups()" class="text-gray-400 hover:text-gray-600">✕</button>
-            </div>
-            <div class="p-2 bg-orange-50 rounded-md mb-2">
-                <div class="text-[10px] text-orange-600 font-bold uppercase tracking-wider">面积数据</div>
-                <div class="text-lg font-black text-orange-700">24.5 <span class="text-xs font-normal">m²</span></div>
-            </div>
-            <div class="text-xs text-gray-600 leading-relaxed">采用环保乳胶漆，搭配原木地板。整体采光充足。</div>
-        </div>
-        <div id="popup-2" class="label-popup" data-hotspot-panel="balcony-view" style="left: 56%; top: 50%;">
-            <div class="flex justify-between items-start mb-2">
-                <div class="font-bold text-gray-800">阳台视角</div>
-                <button onclick="closePopups()" class="text-gray-400 hover:text-gray-600">✕</button>
-            </div>
-            <div class="p-2 bg-blue-50 rounded-md mb-2">
-                <div class="text-[10px] text-blue-600 font-bold uppercase tracking-wider">结构高度</div>
-                <div class="text-lg font-black text-blue-700">2.8 <span class="text-xs font-normal">m</span></div>
-            </div>
-            <div class="text-xs text-gray-600 leading-relaxed">双层中空玻璃，隔音效果极佳。预留洗衣机位。</div>
-        </div>
-
-        <!-- 顶部工具栏 -->
-        <div id="top-bar" class="absolute top-4 left-1/2 -translate-x-1/2 flex gap-2 bg-white/90 backdrop-blur shadow-lg rounded-full px-4 py-2 border border-gray-100 su-ui-panel" data-ui-role="viewer-toolbar">
-            <button id="btn-rotate" data-mode-trigger="rotate" onclick="setMode('rotate')" class="p-2 hover:bg-gray-100 rounded-full active-tool" title="旋转视角">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                </svg>
-            </button>
-            <button id="btn-pan" data-mode-trigger="pan" onclick="setMode('pan')" class="p-2 hover:bg-gray-100 rounded-full" title="平移视角">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 11.5V14m0-2.5v-6a1.5 1.5 0 113 0V12m-3-2.5l3-2.5m-3 2.5l3 2.5M9 4h3m0 0a1.5 1.5 0 013 0v10m-3-10V4m3 10V4" />
-                </svg>
-            </button>
-            <div class="w-px h-6 bg-gray-200 self-center"></div>
-            <button id="btn-measure" data-mode-trigger="distance-measure" onclick="toggleMeasure()" class="p-2 hover:bg-gray-100 rounded-full" title="测量工具">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-                </svg>
-            </button>
-            <button id="btn-area" data-mode-trigger="area-measure" onclick="toggleAreaMeasure()" class="p-2 hover:bg-gray-100 rounded-full" title="面积测量">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7h18M3 17h18M7 3v18M17 3v18" />
-                </svg>
-            </button>
-            <button id="btn-clear-all" onclick="clearAllMeasurements()" class="p-2 hover:bg-red-100 rounded-full text-red-500" title="删除所有测量">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 011.995 1.858L5 17m0 0L6.983 5.142A2 2 0 011.995-1.858L19 7m0 0a2 2 0 002 2v3a2 2 0 01-2 2H7a2 2 0 01-2-2V9a2 2 0 012-2m0 0a2 2 0 012-2v-3a2 2 0 01-2-2m0 0a2 2 0 012-2v-3a2 2 0 01-2-2m0 0a2 2 0 012-2v-3a2 2 0 01-2-2m0 0a2 2 0 012-2v-3a2 2 0 01-2-2m0 0a2 2 0 012-2v-3a2 2 0 01-2-2" />
-                </svg>
-            </button>
-        </div>
-
-        <!-- 底部场景列表 -->
-        <div id="scenes-bar" class="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-4 bg-white/80 backdrop-blur shadow-xl rounded-2xl px-6 py-4 border border-gray-100 su-ui-panel overflow-x-auto max-w-[90vw]" data-ui-role="scene-switcher">
-            <div data-scene-key="living-room" onclick="switchScene('living-room')" class="flex-shrink-0 cursor-pointer text-center group">
-                <div class="w-16 h-12 bg-gray-200 rounded-lg mb-1 group-hover:border-2 border-orange-500 transition-all overflow-hidden">
-                    <div class="w-full h-full bg-gradient-to-br from-blue-100 to-gray-200"></div>
-                </div>
-                <div class="text-[10px] text-gray-600 font-medium">客餐厅</div>
-            </div>
-            <div data-scene-key="master-bedroom" onclick="switchScene('master-bedroom')" class="flex-shrink-0 cursor-pointer text-center group">
-                <div class="w-16 h-12 bg-gray-200 rounded-lg mb-1 group-hover:border-2 border-orange-500 transition-all overflow-hidden">
-                    <div class="w-full h-full bg-gradient-to-br from-green-100 to-gray-200"></div>
-                </div>
-                <div class="text-[10px] text-gray-600 font-medium">主卧</div>
-            </div>
-            <div data-scene-key="kitchen" onclick="switchScene('kitchen')" class="flex-shrink-0 cursor-pointer text-center group">
-                <div class="w-16 h-12 bg-gray-200 rounded-lg mb-1 group-hover:border-2 border-orange-500 transition-all overflow-hidden">
-                    <div class="w-full h-full bg-gradient-to-br from-yellow-100 to-gray-200"></div>
-                </div>
-                <div class="text-[10px] text-gray-600 font-medium">厨房</div>
-            </div>
-            <div data-scene-key="bird-view" onclick="switchScene('bird-view')" class="flex-shrink-0 cursor-pointer text-center group">
-                <div class="w-16 h-12 bg-gray-200 rounded-lg mb-1 group-hover:border-2 border-orange-500 transition-all overflow-hidden border-2 border-orange-500">
-                    <div class="w-full h-full bg-gradient-to-br from-orange-100 to-gray-200"></div>
-                </div>
-                <div class="text-[10px] text-orange-600 font-bold">鸟瞰图</div>
-            </div>
-        </div>
-
-        <!-- 测量结果浮窗 (模拟) -->
-        <div id="measure-result" class="absolute top-20 right-6 bg-white/90 p-3 rounded-lg shadow-lg border border-orange-200 hidden" data-ui-role="distance-panel" data-panel-state="distance-idle">
-            <div class="text-xs text-gray-500 mb-1">当前距离</div>
-            <div class="text-xl font-bold text-orange-600">3,450 <span class="text-xs font-normal">mm</span></div>
-            <button onclick="toggleMeasure()" class="mt-2 text-[10px] text-blue-500 hover:underline">关闭测量</button>
-        </div>
-        <div id="area-result" class="absolute top-44 right-6 bg-white/90 p-3 rounded-lg shadow-lg border border-blue-200 hidden" data-ui-role="area-panel" data-panel-state="area-idle">
-            <div class="text-xs text-gray-500 mb-1">当前面积</div>
-            <div id="area-status" class="text-xl font-bold text-blue-700">请选择模型面</div>
-            <div id="area-point-count" class="text-[11px] text-gray-500 mt-1">已选点位：0</div>
-            <button id="btn-area-finish" class="mt-2 text-[10px] text-blue-600 hover:underline">完成面积</button>
-            <button id="btn-area-clear" class="mt-2 ml-3 text-[10px] text-gray-600 hover:underline">清空点位</button>
-            <button onclick="toggleAreaMeasure()" class="mt-2 text-[10px] text-blue-500 hover:underline">关闭面积测量</button>
-        </div>
-    </div>
-
-    <script type="application/json" id="prototype-spec">
-{
-  "version": "1.0.0",
-  "purpose": "AI handoff spec for the v1.0 viewer prototype",
-  "sourceOfTruth": {
-    "business": "prd/prd_v1.0.html",
-    "interaction": "prototype/prototype_v1.0.html",
-    "configNode": "#prototype-spec"
-  },
-  "initialState": {
-    "sceneKey": "bird-view",
-    "viewerMode": "rotate"
-  },
-  "scenePresets": [
-    {
-      "key": "living-room",
-      "label": "\u5ba2\u9910\u5385",
-      "cameraPosition": [2, 2, 5],
-      "cameraTarget": [0, 0, 0]
-    },
-    {
-      "key": "master-bedroom",
-      "label": "\u4e3b\u5367",
-      "cameraPosition": [2, 2, 5],
-      "cameraTarget": [0, 0, 0]
-    },
-    {
-      "key": "kitchen",
-      "label": "\u53a8\u623f",
-      "cameraPosition": [2, 2, 5],
-      "cameraTarget": [0, 0, 0]
-    },
-    {
-      "key": "bird-view",
-      "label": "\u9e1f\u77b0\u56fe",
-      "cameraPosition": [10, 10, 10],
-      "cameraTarget": [0, 0, 0]
-    }
-  ],
-  "hotspots": [
-    {
-      "id": 1,
-      "key": "master-bedroom-space",
-      "label": "\u4e3b\u5367\u7a7a\u95f4",
-      "anchor": [1.5, 0.6, 1.4],
-      "metricLabel": "\u9762\u79ef\u6570\u636e",
-      "metricValue": "24.5",
-      "metricUnit": "m\u00b2"
-    },
-    {
-      "id": 2,
-      "key": "balcony-view",
-      "label": "\u9633\u53f0\u89c6\u89d2",
-      "anchor": [-1.5, -0.2, -1.2],
-      "metricLabel": "\u7ed3\u6784\u9ad8\u5ea6",
-      "metricValue": "2.8",
-      "metricUnit": "m"
-    }
-  ],
-  "viewerModes": [
-    "rotate",
-    "pan",
-    "distance-measure",
-    "area-measure"
-  ],
-  "measurementRules": {
-    "distanceUnit": "mm",
-    "areaUnit": "m\u00b2",
-    "persistWithinSession": true,
-    "clearDraftOnModeChange": true
-  },
-  "focusModes": [
-    "viewer",
-    "label-layer",
-    "btn-measure",
-    "scene-buttons"
-  ]
-}
-    </script>
-
-    <script>
         // --- Focus Mode 处理 ---
         document.querySelectorAll('button:not([type])').forEach((button) => {
             button.type = 'button';
@@ -264,10 +20,6 @@
         const sceneItems = Array.from(document.querySelectorAll('#scenes-bar > div'));
         const scenePresetMap = new Map(prototypeSpec.scenePresets.map((preset) => [preset.key, preset]));
         const labelPopups = document.querySelectorAll('.label-popup');
-
-        function setPanelState(panel, state) {
-            panel.dataset.panelState = state;
-        }
 
         if (focusMode) {
             // 隐藏除 focus 目标外的所有 UI
@@ -517,7 +269,6 @@
             areaDraftLineElements = [];
             areaDraftClosingLineElement = null;
             areaPointCountElement.textContent = '已选点位：0';
-            setPanelState(areaResultPanel, 'area-draft-cleared');
         }
 
         // 自动完成面积测量（当点击其他按钮时）
@@ -528,7 +279,6 @@
                 areaStatusElement.textContent = `已生成面积：${created.areaValue.toFixed(2)} m²`;
                 clearAreaDraft();
                 isAreaMeasurementCompleted = true;
-                setPanelState(areaResultPanel, 'area-complete');
             }
         }
 
@@ -638,8 +388,6 @@
             
             // 隐藏删除按钮
             measurementDeleteButton.style.display = 'none';
-            setPanelState(measureResultPanel, 'distance-cleared');
-            setPanelState(areaResultPanel, 'area-cleared');
         }
 
         function updateStoredMeasurementsUI() {
@@ -821,7 +569,6 @@
             
             if (isMeasuring) {
                 panel.classList.remove('hidden');
-                setPanelState(panel, 'distance-drafting');
                 btn.classList.add('active-tool');
                 areaBtn.classList.remove('active-tool');
                 container.classList.add('measuring');
@@ -833,7 +580,6 @@
             } else {
                 // 只隐藏面板，不清除已保存的测量结果
                 panel.classList.add('hidden');
-                setPanelState(panel, 'distance-idle');
                 btn.classList.remove('active-tool');
                 container.classList.remove('measuring');
                 controls.enabled = true;
@@ -864,7 +610,6 @@
 
             if (isAreaMeasuring) {
                 panel.classList.remove('hidden');
-                setPanelState(panel, 'area-drafting');
                 btn.classList.add('active-tool');
                 distanceBtn.classList.remove('active-tool');
                 container.classList.add('measuring');
@@ -875,7 +620,6 @@
             } else {
                 // 只隐藏面板，不清除已保存的测量结果
                 panel.classList.add('hidden');
-                setPanelState(panel, 'area-idle');
                 btn.classList.remove('active-tool');
                 container.classList.remove('measuring');
                 controls.enabled = true;
@@ -1010,7 +754,6 @@
 
             if (isAreaMeasuring) {
                 addAreaDraftPoint(intersects[0].point.clone());
-                setPanelState(areaResultPanel, 'area-drafting');
                 if (areaDraftPoints.length >= 3) {
                     const { areaValue } = projectPointsToPlaneAndArea(areaDraftPoints);
                     areaStatusElement.textContent = `预估面积：${areaValue.toFixed(2)} m²`;
@@ -1026,14 +769,12 @@
             if (measureWorldPoints.length === 1) {
                 measureStatusElement.innerHTML = "请选择终点";
                 measureStatusElement.classList.add('text-sm', 'font-normal');
-                setPanelState(measureResultPanel, 'distance-drafting');
             } else if (measureWorldPoints.length === 2) {
                 createMeasurementItem(measureWorldPoints[0], measureWorldPoints[1]);
                 measureWorldPoints = [];
                 resetMeasureUI();
                 measureStatusElement.innerHTML = "已保留测量线，继续选择起点";
                 measureStatusElement.classList.add('text-sm', 'font-normal');
-                setPanelState(measureResultPanel, 'distance-complete');
             }
             updateMeasureUI();
         });
@@ -1047,7 +788,6 @@
             e.stopPropagation();
             if (areaDraftPoints.length < 3) {
                 areaStatusElement.textContent = '至少三个点才能生成面积';
-                setPanelState(areaResultPanel, 'area-invalid');
                 return;
             }
             const created = createAreaMeasurementItem(areaDraftPoints);
@@ -1055,14 +795,12 @@
             areaStatusElement.textContent = `已生成面积：${created.areaValue.toFixed(2)} m²`;
             clearAreaDraft();
             isAreaMeasurementCompleted = true; // 标记面积测量已完成
-            setPanelState(areaResultPanel, 'area-complete');
         });
 
         areaClearButton.addEventListener('click', (e) => {
             e.stopPropagation();
             clearAreaDraft();
             areaStatusElement.textContent = '请选择至少三个点';
-            setPanelState(areaResultPanel, 'area-draft-cleared');
         });
 
         function switchScene(sceneKey) {
@@ -1130,6 +868,4 @@
             updateMeasureUI();
             updateStoredMeasurementsUI();
         });
-    </script>
-</body>
-</html>
+    

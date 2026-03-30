@@ -272,57 +272,61 @@
     </div>
 
     <script>
-        // 更多工具面板切换
+        document.querySelectorAll('button:not([type])').forEach((button) => {
+            button.type = 'button';
+        });
+
+        const mobileContainer = document.querySelector('.mobile-container');
         const moreToolsBtn = document.getElementById('more-tools-btn');
         const moreToolsPanel = document.getElementById('more-tools-panel');
-        
+        const hotspotPanel = document.getElementById('hotspot-panel');
+        const measureHint = document.getElementById('measure-hint');
+        const interactiveToolButtons = ['rotate-btn', 'pan-btn', 'measure-btn', 'area-btn', 'delete-all-btn']
+            .map((id) => document.getElementById(id))
+            .filter(Boolean);
+
+        function setActiveTool(activeButton) {
+            interactiveToolButtons.forEach((button) => {
+                button.classList.toggle('active', button === activeButton);
+            });
+
+            const shouldShowMeasureHint = activeButton && (activeButton.id === 'measure-btn' || activeButton.id === 'area-btn');
+            measureHint.classList.toggle('hidden', !shouldShowMeasureHint);
+        }
+
+        function hideTransientPanels() {
+            hotspotPanel.classList.add('hidden');
+            moreToolsPanel.classList.add('hidden');
+            moreToolsBtn.classList.remove('active');
+        }
+
         moreToolsBtn.addEventListener('click', () => {
             moreToolsPanel.classList.toggle('hidden');
             moreToolsBtn.classList.toggle('active');
         });
 
-        // 工具按钮切换
-        const toolBtns = document.querySelectorAll('.tool-btn');
-        toolBtns.forEach(btn => {
-            if (btn.id !== 'more-tools-btn') {
-                btn.addEventListener('click', () => {
-                    // 移除所有激活状态
-                    toolBtns.forEach(b => b.classList.remove('active'));
-                    // 激活当前按钮
-                    btn.classList.add('active');
-                    
-                    // 显示测量提示
-                    if (btn.id === 'measure-btn' || btn.id === 'area-btn') {
-                        document.getElementById('measure-hint').classList.remove('hidden');
-                    } else {
-                        document.getElementById('measure-hint').classList.add('hidden');
-                    }
-                });
-            }
-        });
-
-        // 场景按钮切换
-        const sceneBtns = document.querySelectorAll('.scene-btn');
-        sceneBtns.forEach(btn => {
-            btn.addEventListener('click', () => {
-                sceneBtns.forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
+        interactiveToolButtons.forEach((button) => {
+            button.addEventListener('click', () => {
+                setActiveTool(button);
             });
         });
 
-        // 热点点击
-        document.querySelectorAll('.hotspot').forEach(hotspot => {
+        document.querySelectorAll('.scene-btn').forEach((button) => {
+            button.addEventListener('click', () => {
+                document.querySelectorAll('.scene-btn').forEach((item) => item.classList.remove('active'));
+                button.classList.add('active');
+            });
+        });
+
+        document.querySelectorAll('.hotspot').forEach((hotspot) => {
             hotspot.addEventListener('click', () => {
-                document.getElementById('hotspot-panel').classList.remove('hidden');
+                hotspotPanel.classList.remove('hidden');
             });
         });
 
-        // 点击空白处关闭面板
-        document.querySelector('.mobile-container').addEventListener('click', (e) => {
-            if (!e.target.closest('.hotspot') && !e.target.closest('.info-panel') && !e.target.closest('.tool-btn')) {
-                document.getElementById('hotspot-panel').classList.add('hidden');
-                moreToolsPanel.classList.add('hidden');
-                moreToolsBtn.classList.remove('active');
+        mobileContainer.addEventListener('click', (event) => {
+            if (!event.target.closest('.hotspot') && !event.target.closest('.info-panel') && !event.target.closest('.tool-btn')) {
+                hideTransientPanels();
             }
         });
     </script>

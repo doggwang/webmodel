@@ -41,7 +41,7 @@
         </div>
 
         <!-- 上传区域 -->
-        <div id="upload-zone" class="upload-zone bg-white rounded-2xl p-12 text-center cursor-pointer">
+        <div id="upload-zone" class="upload-zone bg-white rounded-2xl p-12 text-center cursor-pointer" role="button" tabindex="0" aria-label="Select or drop a SketchUp file">
             <div class="space-y-4">
                 <!-- 图标 -->
                 <div class="flex justify-center">
@@ -66,7 +66,7 @@
         </div>
 
         <!-- 上传进度区域（默认隐藏） -->
-        <div id="upload-progress" class="hidden mt-6 bg-white rounded-2xl p-6 shadow-sm">
+        <div id="upload-progress" class="hidden mt-6 bg-white rounded-2xl p-6 shadow-sm" aria-live="polite">
             <div class="flex items-center justify-between mb-4">
                 <div class="flex items-center space-x-3">
                     <div class="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
@@ -92,7 +92,7 @@
         </div>
 
         <!-- 上传成功区域（默认隐藏） -->
-        <div id="upload-success" class="hidden mt-6 bg-white rounded-2xl p-6 shadow-sm border-2 border-green-200">
+        <div id="upload-success" class="hidden mt-6 bg-white rounded-2xl p-6 shadow-sm border-2 border-green-200" role="status" aria-live="polite">
             <div class="flex items-center space-x-4">
                 <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -116,7 +116,7 @@
         </div>
 
         <!-- 错误提示区域（默认隐藏） -->
-        <div id="upload-error" class="hidden mt-6 bg-red-50 rounded-2xl p-6 border-2 border-red-200">
+        <div id="upload-error" class="hidden mt-6 bg-red-50 rounded-2xl p-6 border-2 border-red-200" role="alert">
             <div class="flex items-start space-x-4">
                 <div class="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -145,15 +145,40 @@
     </div>
 
     <script>
-        // 模拟上传交互
+        document.querySelectorAll('button:not([type])').forEach((button) => {
+            button.type = 'button';
+        });
+
         const uploadZone = document.getElementById('upload-zone');
         const uploadProgress = document.getElementById('upload-progress');
         const uploadSuccess = document.getElementById('upload-success');
         const uploadError = document.getElementById('upload-error');
+        const retryButton = uploadError.querySelector('button');
+        let uploadTimerId = null;
 
-        // 拖拽效果
-        uploadZone.addEventListener('dragover', (e) => {
-            e.preventDefault();
+        function showUploadZone() {
+            clearTimeout(uploadTimerId);
+            uploadProgress.classList.add('hidden');
+            uploadSuccess.classList.add('hidden');
+            uploadError.classList.add('hidden');
+            uploadZone.classList.remove('hidden');
+        }
+
+        function startMockUpload() {
+            clearTimeout(uploadTimerId);
+            uploadError.classList.add('hidden');
+            uploadSuccess.classList.add('hidden');
+            uploadZone.classList.add('hidden');
+            uploadProgress.classList.remove('hidden');
+
+            uploadTimerId = setTimeout(() => {
+                uploadProgress.classList.add('hidden');
+                uploadSuccess.classList.remove('hidden');
+            }, 3000);
+        }
+
+        uploadZone.addEventListener('dragover', (event) => {
+            event.preventDefault();
             uploadZone.classList.add('drag-over');
         });
 
@@ -161,37 +186,27 @@
             uploadZone.classList.remove('drag-over');
         });
 
-        uploadZone.addEventListener('drop', (e) => {
-            e.preventDefault();
+        uploadZone.addEventListener('drop', (event) => {
+            event.preventDefault();
             uploadZone.classList.remove('drag-over');
-            // 模拟开始上传
-            uploadZone.classList.add('hidden');
-            uploadProgress.classList.remove('hidden');
-            
-            // 模拟上传进度
-            setTimeout(() => {
-                uploadProgress.classList.add('hidden');
-                uploadSuccess.classList.remove('hidden');
-            }, 3000);
+            startMockUpload();
         });
 
-        // 点击选择文件
         uploadZone.addEventListener('click', () => {
-            // 模拟选择文件
-            uploadZone.classList.add('hidden');
-            uploadProgress.classList.remove('hidden');
-            
-            // 模拟上传进度
-            setTimeout(() => {
-                uploadProgress.classList.add('hidden');
-                uploadSuccess.classList.remove('hidden');
-            }, 3000);
+            startMockUpload();
         });
 
-        // 模拟错误情况（点击错误提示的重新选择按钮）
-        uploadError.querySelector('button').addEventListener('click', () => {
-            uploadError.classList.add('hidden');
-            uploadZone.classList.remove('hidden');
+        uploadZone.addEventListener('keydown', (event) => {
+            if (event.key !== 'Enter' && event.key !== ' ') {
+                return;
+            }
+
+            event.preventDefault();
+            startMockUpload();
+        });
+
+        retryButton.addEventListener('click', () => {
+            showUploadZone();
         });
     </script>
 </body>

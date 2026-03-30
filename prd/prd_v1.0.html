@@ -154,6 +154,7 @@
             <a href="#acceptance" class="nav-link" onclick="closeSidebar()">六、验收标准</a>
             <a href="#exception" class="nav-link" onclick="closeSidebar()">七、异常与边界</a>
             <a href="#flowcharts" class="nav-link" onclick="closeSidebar()">八、业务流程图</a>
+            <a href="#dev-spec" class="nav-link" onclick="closeSidebar()">九、开发交付规则</a>
         </nav>
     </div>
 
@@ -1498,29 +1499,205 @@ flowchart TD
             </div>
         </section>
 
+        <section id="dev-spec" data-doc-role="ai-handoff-spec">
+            <h2>九、开发交付规则</h2>
+
+            <div class="mb-6 p-4 rounded-lg border border-gray-200">
+                <h4 class="font-bold text-gray-800 mb-2">本节用途</h4>
+                <p class="text-sm text-gray-700">本节用于把当前 PRD 与原型转换成可直接交给 AI 开发的输入物。如果业务描述、原型表现、演示代码实现细节之间存在冲突，默认按以下优先级执行：<strong>产品边界与验收标准 &gt; 本节开发约束 &gt; 原型页面表现 &gt; 演示脚本细节</strong>。</p>
+            </div>
+
+            <div class="feature-module" data-spec-block="scope-priority">
+                <h3>9.1 AI 输入优先级与边界</h3>
+                <ul class="list-disc ml-6 space-y-2 text-gray-600">
+                    <li><strong>PRD 是业务真源</strong>：功能范围、异常规则、验收标准以本文件为准。</li>
+                    <li><strong>prototype_v1.0.html 是交互真源</strong>：布局、状态切换、热点与测量面板的交互方式应尽量贴近原型。</li>
+                    <li><strong>演示脚本不是后端真源</strong>：随机进度、定时器、硬编码数据只代表状态，不代表最终接口实现。</li>
+                    <li><strong>禁止自由发挥的范围外能力</strong>：不得新增登录系统、多人协作、模型编辑、支付订阅、后台配置系统。</li>
+                    <li><strong>允许的工程优化</strong>：可替换演示逻辑、拆组件、增加状态管理、补测试与异常处理，但不得改变既定内容与页面信息层级。</li>
+                    <li><strong>机器可读配置入口</strong>：`prototype/prototype_v1.0.html` 中的 `#prototype-spec` 是后续 AI 读取热点、场景、状态说明的配置源。</li>
+                </ul>
+            </div>
+
+            <div class="feature-module" data-spec-block="page-state-matrix">
+                <h3>9.2 页面与状态清单</h3>
+                <table class="table-auto">
+                    <thead>
+                        <tr>
+                            <th>页面 ID</th>
+                            <th>建议路由</th>
+                            <th>原型来源</th>
+                            <th>必须覆盖的状态</th>
+                            <th>说明</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>upload-page</td>
+                            <td>/upload</td>
+                            <td>prototype/upload.html</td>
+                            <td>idle / dragging / uploading / upload-success / upload-error</td>
+                            <td>负责 `.skp` 文件上传、格式校验、大小限制、进度反馈与进入分享页。</td>
+                        </tr>
+                        <tr>
+                            <td>share-page</td>
+                            <td>/share/:modelId</td>
+                            <td>prototype/share.html</td>
+                            <td>ready / copy-success / password-enabled / qr-ready</td>
+                            <td>负责链接生成、有效期设置、访问密码、二维码展示与查看入口。</td>
+                        </tr>
+                        <tr>
+                            <td>viewer-page</td>
+                            <td>/view/:shareToken</td>
+                            <td>prototype/prototype_v1.0.html</td>
+                            <td>loading / viewer-ready / popup-open / distance-measuring / area-measuring / warning</td>
+                            <td>负责 3D 查看、热点信息、场景切换、交互模式切换与测量工具。</td>
+                        </tr>
+                        <tr>
+                            <td>viewer-error-page</td>
+                            <td>/view/:shareToken/error</td>
+                            <td>prototype/error-states.html</td>
+                            <td>load-error / link-expired / password-error / device-warning</td>
+                            <td>错误页可独立路由，也可作为 viewer 内状态页，但 4 类异常都必须可独立验证。</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="feature-module" data-spec-block="data-contract">
+                <h3>9.3 前端数据契约草案</h3>
+                <p class="text-sm text-gray-600">若后续没有额外接口文档，默认按以下字段命名组织前后端交互与前端状态。字段可扩展，但不建议随意改名。</p>
+                <pre class="mt-4 p-4 rounded-lg bg-slate-900 text-slate-100 text-xs overflow-x-auto"><code>{
+  "ModelAsset": {
+    "id": "model_001",
+    "fileName": "living-room.skp",
+    "fileSizeBytes": 131701145,
+    "sourceFormat": "skp",
+    "viewerFormat": "gltf-draco",
+    "status": "uploaded | converting | ready | failed",
+    "thumbnailUrl": "/assets/model_001-cover.jpg"
+  },
+  "ShareLink": {
+    "id": "share_001",
+    "modelId": "model_001",
+    "token": "abc123xyz",
+    "url": "https://su-web.app/view/abc123xyz",
+    "expiresInDays": 7,
+    "passwordEnabled": true,
+    "passwordHint": "",
+    "qrCodeUrl": "/assets/share_001-qr.png"
+  },
+  "ScenePreset": {
+    "id": "scene_living_room",
+    "key": "living-room",
+    "label": "\u5ba2\u9910\u5385",
+    "cameraPosition": [2, 2, 5],
+    "cameraTarget": [0, 0, 0],
+    "isDefault": false
+  },
+  "Hotspot": {
+    "id": "hotspot_master_bedroom",
+    "label": "\u4e3b\u5367\u7a7a\u95f4",
+    "anchor": [1.5, 0.6, 1.4],
+    "metricLabel": "\u9762\u79ef\u6570\u636e",
+    "metricValue": "24.5",
+    "metricUnit": "m\u00b2",
+    "description": "\u7528\u4e8e\u8bf4\u660e\u6750\u8d28\u3001\u9762\u79ef\u3001\u5907\u6ce8\u6216\u56fe\u7247\u4fe1\u606f\u3002"
+  },
+  "MeasurementDistance": {
+    "id": "M1",
+    "start": [0.12, 0.45, 0.88],
+    "end": [0.37, 0.45, 1.26],
+    "value": 3450,
+    "unit": "mm"
+  },
+  "MeasurementArea": {
+    "id": "A1",
+    "points": [[0, 0, 0], [1, 0, 0], [1, 0, 1], [0, 0, 1]],
+    "value": 24.5,
+    "unit": "m\u00b2"
+  }
+}</code></pre>
+            </div>
+
+            <div class="feature-module" data-spec-block="implementation-rules">
+                <h3>9.4 AI 实施规则</h3>
+                <ul class="list-disc ml-6 space-y-2 text-gray-600">
+                    <li><strong>默认实现顺序</strong>：viewer 壳层与路由 → 上传页 → 分享页 → 热点与场景 → 测量工具 → 错误页与异常链路。</li>
+                    <li><strong>默认前端约束</strong>：组件化、配置驱动、避免把热点、场景、状态文案硬编码到多个位置。</li>
+                    <li><strong>Viewer 交互约束</strong>：旋转、平移、距离测量、面积测量是独立模式；切换模式时必须显式清理草稿态。</li>
+                    <li><strong>测量数据约束</strong>：v1.0 默认仅保存在当前查看会话，无需登录后的跨设备持久化。</li>
+                    <li><strong>分享能力约束</strong>：有效期、密码、二维码、复制链接均视为 P0；缺少任何一项都算交付不完整。</li>
+                    <li><strong>错误处理约束</strong>：上传失败、链接过期、密码错误、设备性能不足必须有独立可识别 UI，不允许仅用 toast 替代。</li>
+                    <li><strong>性能约束</strong>：100MB 内模型首屏目标 5 秒内；移动端交互目标不低于 30 FPS；超大模型要给出明确降级提示。</li>
+                    <li><strong>可测试性约束</strong>：关键状态必须有稳定选择器、组件标识或配置键，便于自动化测试与 AI 精准引用。</li>
+                </ul>
+            </div>
+
+            <div class="feature-module" data-spec-block="definition-of-done">
+                <h3>9.5 Definition Of Done</h3>
+                <table class="table-auto">
+                    <thead>
+                        <tr>
+                            <th>检查项</th>
+                            <th>完成标准</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>页面覆盖</td>
+                            <td>上传、分享、viewer、错误态四类页面全部可访问且状态完整。</td>
+                        </tr>
+                        <tr>
+                            <td>交互一致性</td>
+                            <td>原型中的按钮布局、面板层级、热点弹层、场景切换与测量交互均可复现。</td>
+                        </tr>
+                        <tr>
+                            <td>配置驱动</td>
+                            <td>热点、场景、分享设置和错误状态至少有一层集中配置，不散落在多个组件中重复定义。</td>
+                        </tr>
+                        <tr>
+                            <td>异常链路</td>
+                            <td>上传失败、空点击、密码错误、链接过期、设备性能不足均有显式处理与可测试入口。</td>
+                        </tr>
+                        <tr>
+                            <td>可测试性</td>
+                            <td>关键状态有稳定选择器或组件标识，可供 E2E 或自动化脚本引用。</td>
+                        </tr>
+                        <tr>
+                            <td>范围控制</td>
+                            <td>未引入 PRD 范围外的新系统；未遗漏 PRD 中标记为 P0/P1 的能力。</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
     </div>
 
     <button class="back-to-top" id="backToTop" onclick="scrollToTop()">↑</button>
 
     <script>
+        document.querySelectorAll('button:not([type])').forEach((button) => {
+            button.type = 'button';
+        });
+
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.querySelector('.overlay');
+        const contentPanel = document.querySelector('.content');
+        const backToTopButton = document.getElementById('backToTop');
+        let isBackToTopTicking = false;
+
         function toggleSidebar() {
-            const sidebar = document.getElementById('sidebar');
-            const overlay = document.querySelector('.overlay');
-            const content = document.querySelector('.content');
-            
             sidebar.classList.toggle('open');
             overlay.classList.toggle('active');
-            content.classList.toggle('expanded');
+            contentPanel.classList.toggle('expanded');
         }
 
         function closeSidebar() {
-            const sidebar = document.getElementById('sidebar');
-            const overlay = document.querySelector('.overlay');
-            const content = document.querySelector('.content');
-            
             sidebar.classList.remove('open');
             overlay.classList.remove('active');
-            content.classList.remove('expanded');
+            contentPanel.classList.remove('expanded');
         }
 
         function scrollToTop() {
@@ -1534,7 +1711,7 @@ flowchart TD
             const container = document.getElementById(iframeId);
             const iframe = container.querySelector('iframe');
             const errorDiv = container.querySelector('.iframe-error');
-            
+
             if (iframe && errorDiv) {
                 iframe.style.display = 'none';
                 errorDiv.style.display = 'block';
@@ -1544,28 +1721,35 @@ flowchart TD
 
         function zoomMermaid(button, delta) {
             const container = button.closest('.mermaid-container');
-            const content = container.querySelector('.mermaid-content');
-            const currentScale = parseFloat(content.dataset.scale) || 1;
+            const mermaidContent = container.querySelector('.mermaid-content');
+            const currentScale = parseFloat(mermaidContent.dataset.scale) || 1;
             const newScale = Math.max(0.5, Math.min(2, currentScale + delta));
-            content.style.transform = `scale(${newScale})`;
-            content.dataset.scale = newScale;
+            mermaidContent.style.transform = `scale(${newScale})`;
+            mermaidContent.dataset.scale = String(newScale);
         }
 
         function resetMermaid(button) {
             const container = button.closest('.mermaid-container');
-            const content = container.querySelector('.mermaid-content');
-            content.style.transform = 'scale(1)';
-            content.dataset.scale = 1;
+            const mermaidContent = container.querySelector('.mermaid-content');
+            mermaidContent.style.transform = 'scale(1)';
+            mermaidContent.dataset.scale = '1';
         }
 
-        window.addEventListener('scroll', function() {
-            const backToTop = document.getElementById('backToTop');
-            if (window.pageYOffset > 300) {
-                backToTop.classList.add('visible');
-            } else {
-                backToTop.classList.remove('visible');
+        function updateBackToTopVisibility() {
+            backToTopButton.classList.toggle('visible', window.scrollY > 300);
+            isBackToTopTicking = false;
+        }
+
+        window.addEventListener('scroll', () => {
+            if (isBackToTopTicking) {
+                return;
             }
-        });
+
+            isBackToTopTicking = true;
+            window.requestAnimationFrame(updateBackToTopVisibility);
+        }, { passive: true });
+
+        updateBackToTopVisibility();
     </script>
 </body>
 </html>
