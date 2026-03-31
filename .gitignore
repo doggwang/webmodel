@@ -45,3 +45,6 @@ Thumbs.db
 
 # Temp files
 .tmp-script-check/
+
+# TypeScript build info
+**/tsconfig.*.tsbuildinfo
