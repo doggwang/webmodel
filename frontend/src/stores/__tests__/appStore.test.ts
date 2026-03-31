@@ -10,7 +10,7 @@ describe('AppStore upload state', () => {
   });
 
   it('should update upload state', () => {
-    const { setUploading, setUploadProgress, setUploadError } = useAppStore.getState();
+    const { setUploading, updateUploadProgress, setUploadError } = useAppStore.getState();
 
     act(() => {
       setUploading(true);
@@ -18,7 +18,7 @@ describe('AppStore upload state', () => {
     expect(useAppStore.getState().isUploading).toBe(true);
 
     act(() => {
-      setUploadProgress(50);
+      updateUploadProgress(50);
     });
     expect(useAppStore.getState().uploadProgress).toBe(50);
 
@@ -29,7 +29,7 @@ describe('AppStore upload state', () => {
 
     act(() => {
       setUploading(false);
-      setUploadProgress(0);
+      updateUploadProgress(0);
       setUploadError(null);
     });
     expect(useAppStore.getState().isUploading).toBe(false);

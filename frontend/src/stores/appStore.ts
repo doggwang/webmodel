@@ -17,7 +17,7 @@ interface AppState {
   setCurrentModel: (modelId: string | null) => void;
   // 添加上传方法
   setUploading: (uploading: boolean) => void;
-  setUploadProgress: (progress: number) => void;
+  updateUploadProgress: (progress: number) => void;
   setUploadError: (error: string | null) => void;
   clearAll: () => void;
 }
@@ -38,7 +38,7 @@ export const useAppStore = create<AppState>((set) => ({
   setCurrentModel: (modelId) => set({ currentModelId: modelId }),
   // 上传方法
   setUploading: (uploading) => set({ isUploading: uploading }),
-  setUploadProgress: (progress) => set({ uploadProgress: progress }),
+  updateUploadProgress: (progress) => set({ uploadProgress: progress }),
   setUploadError: (error) => set({ uploadError: error }),
   clearAll: () => set({
     isLoading: false,
