@@ -1,0 +1,19 @@
+/* src/App.css */
+.app-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-content {
+  flex: 1;
+  padding: 1rem;
+}
+
+.app-footer {
+  margin-top: auto;
+  padding: 1rem;
+  text-align: center;
+  color: #6b7280;
+  border-top: 1px solid #e5e7eb;
+}
