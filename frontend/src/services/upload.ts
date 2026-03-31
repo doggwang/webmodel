@@ -18,13 +18,13 @@ export const uploadService = {
         console.log(`上传进度: ${percentCompleted}%`);
       },
     });
-    return response;
+    return response.data;
   },
 
   checkUploadStatus: async (modelId: string): Promise<{ status: string; progress?: number }> => {
     const response = await api.get<{ status: string; progress?: number }>(
       `/upload/status/${modelId}`
     );
-    return response;
+    return response.data;
   },
 };

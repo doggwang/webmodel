@@ -48,3 +48,7 @@ Thumbs.db
 
 # TypeScript build info
 **/tsconfig.*.tsbuildinfo
+
+# Build outputs
+**/dist/
+**/build/
