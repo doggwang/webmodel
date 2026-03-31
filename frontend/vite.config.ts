@@ -28,12 +28,13 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     sourcemap: true,
+    chunkSizeWarningLimit: 500,
     rollupOptions: {
       output: {
         manualChunks: {
           vendor: ['react', 'react-dom', 'react-router-dom'],
           three: ['three', '@react-three/fiber', '@react-three/drei'],
-          ui: ['tailwindcss', 'lucide-react', 'zustand'],
+          ui: ['lucide-react', 'zustand'],
           query: ['@tanstack/react-query', 'axios'],
         },
       },
