@@ -23,7 +23,14 @@
       "Bash(docker-compose up:*)",
       "Bash(docker compose:*)",
       "Bash(find .worktrees/feat/phase1-implementation/frontend -type f -name *.ts -o -name *.tsx -o -name *.js -o -name *.jsx -o -name *.json)",
-      "Bash(ls -la tsconfig*.json)"
+      "Bash(ls -la tsconfig*.json)",
+      "Bash(node -c tailwind.config.js)",
+      "Bash(node -c postcss.config.js)",
+      "Bash(mkdir -p dist)",
+      "Bash(npx tailwindcss:*)",
+      "Bash(npx vitest:*)",
+      "Bash(npm test:*)",
+      "Bash(find .worktrees/feat/phase1-implementation -name *.gltf)"
     ]
   }
 }

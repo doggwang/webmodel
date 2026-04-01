@@ -1,0 +1,1527 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SketchUp Web Viewer - 高保真原型</title>
+    <style>
+        :root {
+            --primary-color: #0ea5e9;
+            --primary-hover: #0284c7;
+            --primary-light: #e0f2fe;
+            --border-color: #e2e8f0;
+            --bg-light: #f8fafc;
+            --bg-gray: #f1f5f9;
+            --text-gray: #64748b;
+            --text-dark: #334155;
+            --text-primary: #0f172a;
+            --success-color: #10b981;
+            --error-color: #ef4444;
+            --warning-color: #f59e0b;
+            --accent-cyan: #06b6d4;
+            --accent-purple: #8b5cf6;
+            --glass-bg: rgba(255, 255, 255, 0.7);
+            --glass-border: rgba(255, 255, 255, 0.5);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: var(--bg-light);
+            min-height: 100vh;
+        }
+
+        .page {
+            display: none;
+            min-height: 100vh;
+            opacity: 0;
+            transform: translateY(30px) scale(0.98);
+            transition: opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1), 
+                        transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .page.active {
+            display: block;
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+
+        /* 动画关键帧定义 */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(40px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInScale {
+            from {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes shimmer {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+        }
+
+        @keyframes glow {
+            0%, 100% { box-shadow: 0 0 20px rgba(14, 165, 233, 0.3); }
+            50% { box-shadow: 0 0 40px rgba(14, 165, 233, 0.6); }
+        }
+
+        /* 元素入场动画类 */
+        .animate-fade-in-up {
+            animation: fadeInUp 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+
+        .animate-fade-in-scale {
+            animation: fadeInScale 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+
+        .delay-100 { animation-delay: 0.1s; }
+        .delay-200 { animation-delay: 0.2s; }
+        .delay-300 { animation-delay: 0.3s; }
+        .delay-400 { animation-delay: 0.4s; }
+        .delay-500 { animation-delay: 0.5s; }
+
+        /* 上传页面样式 - 科技感 */
+        .upload-container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 80px 20px;
+            text-align: center;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            background: 
+                radial-gradient(circle at 10% 20%, rgba(14, 165, 233, 0.05) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(139, 92, 246, 0.04) 0%, transparent 40%),
+                linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+            position: relative;
+        }
+
+        .upload-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: 
+                linear-gradient(rgba(14, 165, 233, 0.02) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(14, 165, 233, 0.02) 1px, transparent 1px);
+            background-size: 40px 40px;
+            pointer-events: none;
+        }
+
+        .logo {
+            font-size: 2.5rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--accent-purple) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 50px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* 欢迎页样式 - 科技感明亮风格 */
+        .welcome-container {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: 
+                radial-gradient(circle at 20% 50%, rgba(14, 165, 233, 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(139, 92, 246, 0.06) 0%, transparent 50%),
+                radial-gradient(circle at 40% 20%, rgba(6, 182, 212, 0.05) 0%, transparent 40%),
+                linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+            padding: 40px 20px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* 科技网格背景 */
+        .welcome-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: 
+                linear-gradient(rgba(14, 165, 233, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(14, 165, 233, 0.03) 1px, transparent 1px);
+            background-size: 60px 60px;
+            pointer-events: none;
+        }
+
+        /* 浮动几何装饰 */
+        .welcome-container::after {
+            content: '';
+            position: absolute;
+            top: 10%;
+            right: 10%;
+            width: 300px;
+            height: 300px;
+            background: linear-gradient(135deg, rgba(14, 165, 233, 0.1) 0%, rgba(139, 92, 246, 0.05) 100%);
+            border-radius: 50%;
+            filter: blur(60px);
+            animation: float 20s ease-in-out infinite;
+            pointer-events: none;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            33% { transform: translate(30px, -30px) scale(1.1); }
+            66% { transform: translate(-20px, 20px) scale(0.9); }
+        }
+
+        .welcome-logo {
+            font-size: 3.5rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--accent-purple) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .welcome-logo::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary-color), var(--accent-cyan));
+            border-radius: 2px;
+        }
+
+        .welcome-subtitle {
+            font-size: 1.25rem;
+            color: var(--text-gray);
+            margin-bottom: 60px;
+            max-width: 500px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .welcome-features {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 30px;
+            margin-bottom: 60px;
+            max-width: 900px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .welcome-feature {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 35px 25px;
+            color: var(--text-dark);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 
+                0 4px 6px -1px rgba(0, 0, 0, 0.05),
+                0 2px 4px -1px rgba(0, 0, 0, 0.03),
+                inset 0 1px 0 rgba(255, 255, 255, 0.8);
+        }
+
+        .welcome-feature:hover {
+            transform: translateY(-8px);
+            box-shadow: 
+                0 20px 25px -5px rgba(14, 165, 233, 0.1),
+                0 10px 10px -5px rgba(14, 165, 233, 0.04),
+                inset 0 1px 0 rgba(255, 255, 255, 0.9);
+            border-color: rgba(14, 165, 233, 0.3);
+        }
+
+        .welcome-feature-icon {
+            font-size: 48px;
+            margin-bottom: 20px;
+            display: block;
+            filter: drop-shadow(0 4px 6px rgba(14, 165, 233, 0.2));
+        }
+
+        .welcome-feature-title {
+            font-size: 1.125rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: var(--text-primary);
+        }
+
+        .welcome-feature-desc {
+            font-size: 0.875rem;
+            color: var(--text-gray);
+            line-height: 1.6;
+        }
+
+        .welcome-cta {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            width: 100%;
+            max-width: 420px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .welcome-btn {
+            padding: 18px 40px;
+            border: none;
+            border-radius: 14px;
+            font-size: 1.125rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .welcome-btn-primary {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--accent-cyan) 100%);
+            color: white;
+            box-shadow: 
+                0 10px 20px -5px rgba(14, 165, 233, 0.4),
+                0 4px 6px -2px rgba(14, 165, 233, 0.2);
+        }
+
+        .welcome-btn-primary::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transition: left 0.5s;
+        }
+
+        .welcome-btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 
+                0 20px 30px -5px rgba(14, 165, 233, 0.5),
+                0 8px 10px -2px rgba(14, 165, 233, 0.3);
+        }
+
+        .welcome-btn-primary:hover::before {
+            left: 100%;
+        }
+
+        .welcome-btn-secondary {
+            background: white;
+            color: var(--text-dark);
+            border: 2px solid var(--border-color);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        }
+
+        .welcome-btn-secondary:hover {
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.08);
+        }
+
+        .upload-box {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 2px dashed var(--border-color);
+            border-radius: 24px;
+            padding: 70px 50px;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            z-index: 1;
+            box-shadow: 
+                0 10px 40px -10px rgba(14, 165, 233, 0.1),
+                inset 0 1px 0 rgba(255, 255, 255, 0.8);
+        }
+
+        .upload-box:hover {
+            border-color: var(--primary-color);
+            background: rgba(224, 242, 254, 0.5);
+            transform: translateY(-4px);
+            box-shadow: 
+                0 20px 50px -12px rgba(14, 165, 233, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.9);
+        }
+
+        .upload-box.dragover {
+            border-color: var(--primary-color);
+            background: rgba(224, 242, 254, 0.7);
+            transform: scale(1.03);
+            box-shadow: 
+                0 25px 60px -15px rgba(14, 165, 233, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.95);
+        }
+
+        .upload-icon {
+            font-size: 72px;
+            margin-bottom: 25px;
+            filter: drop-shadow(0 8px 16px rgba(14, 165, 233, 0.2));
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .upload-text {
+            font-size: 1.5rem;
+            color: var(--text-primary);
+            margin-bottom: 12px;
+            font-weight: 600;
+        }
+
+        .upload-hint {
+            font-size: 1rem;
+            color: var(--text-gray);
+        }
+
+        .upload-progress {
+            display: none;
+            margin-top: 50px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 35px;
+            box-shadow: 
+                0 10px 40px -10px rgba(0, 0, 0, 0.1),
+                inset 0 1px 0 rgba(255, 255, 255, 0.8);
+            position: relative;
+            z-index: 1;
+        }
+
+        .upload-progress.show {
+            display: block;
+            animation: slideUp 0.4s ease;
+        }
+
+        .progress-bar {
+            height: 10px;
+            background: var(--bg-gray);
+            border-radius: 5px;
+            overflow: hidden;
+            margin: 25px 0;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary-color) 0%, var(--accent-cyan) 100%);
+            width: 0%;
+            transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 0 10px rgba(14, 165, 233, 0.4);
+        }
+
+        .progress-text {
+            font-size: 1.25rem;
+            color: var(--text-primary);
+            margin-bottom: 12px;
+            font-weight: 600;
+        }
+
+        .progress-status {
+            font-size: 1rem;
+            color: var(--text-gray);
+        }
+
+        /* 按钮样式 - 科技感 */
+        .btn {
+            padding: 14px 36px;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--accent-cyan) 100%);
+            color: white;
+            box-shadow: 
+                0 8px 16px -4px rgba(14, 165, 233, 0.3),
+                0 4px 6px -2px rgba(14, 165, 233, 0.2);
+        }
+
+        .btn-primary::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 
+                0 12px 24px -6px rgba(14, 165, 233, 0.4),
+                0 6px 8px -3px rgba(14, 165, 233, 0.3);
+        }
+
+        .btn-primary:hover::before {
+            left: 100%;
+        }
+
+        /* 分享页面样式 - 科技感 */
+        .share-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 80px 20px;
+            min-height: 100vh;
+            background: 
+                radial-gradient(circle at 80% 10%, rgba(14, 165, 233, 0.05) 0%, transparent 40%),
+                radial-gradient(circle at 20% 90%, rgba(139, 92, 246, 0.04) 0%, transparent 40%),
+                linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+            position: relative;
+        }
+
+        .share-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: 
+                linear-gradient(rgba(14, 165, 233, 0.02) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(14, 165, 233, 0.02) 1px, transparent 1px);
+            background-size: 40px 40px;
+            pointer-events: none;
+        }
+
+        .share-header {
+            text-align: center;
+            margin-bottom: 50px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .share-title {
+            font-size: 2.5rem;
+            background: linear-gradient(135deg, var(--text-primary) 0%, var(--primary-color) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 12px;
+            font-weight: 800;
+        }
+
+        .share-subtitle {
+            font-size: 1.125rem;
+            color: var(--text-gray);
+        }
+
+        .share-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 40px;
+            box-shadow: 
+                0 10px 40px -10px rgba(0, 0, 0, 0.08),
+                inset 0 1px 0 rgba(255, 255, 255, 0.8);
+            margin-bottom: 30px;
+            position: relative;
+            z-index: 1;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .share-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 
+                0 20px 50px -12px rgba(14, 165, 233, 0.12),
+                inset 0 1px 0 rgba(255, 255, 255, 0.9);
+        }
+
+        .share-card-title {
+            font-size: 1.375rem;
+            color: var(--text-primary);
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: 700;
+        }
+
+        .share-link-box {
+            background: var(--bg-gray);
+            border: 2px solid var(--border-color);
+            border-radius: 16px;
+            padding: 20px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 25px;
+            transition: all 0.3s ease;
+        }
+
+        .share-link-box:hover {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.1);
+        }
+
+        .share-link-text {
+            flex: 1;
+            font-family: 'SF Mono', monospace;
+            color: var(--text-dark);
+            margin-right: 20px;
+            font-size: 1rem;
+        }
+
+        .btn-copy {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--accent-cyan) 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-weight: 600;
+            box-shadow: 0 4px 12px rgba(14, 165, 233, 0.3);
+        }
+
+        .btn-copy:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(14, 165, 233, 0.4);
+        }
+
+        .share-options {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 24px;
+        }
+
+        .option-group {
+            margin-bottom: 24px;
+        }
+
+        .option-label {
+            display: block;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 10px;
+            font-size: 0.9375rem;
+        }
+
+        .option-input {
+            width: 100%;
+            padding: 14px 16px;
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            font-size: 1rem;
+            background: white;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .option-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.1);
+        }
+
+        .qr-code {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 30px;
+            text-align: center;
+            margin-top: 25px;
+            box-shadow: 
+                0 10px 40px -10px rgba(0, 0, 0, 0.08),
+                inset 0 1px 0 rgba(255, 255, 255, 0.8);
+        }
+
+        .qr-placeholder {
+            width: 160px;
+            height: 160px;
+            background: linear-gradient(135deg, var(--bg-gray) 0%, white 100%);
+            margin: 0 auto 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 64px;
+            border-radius: 16px;
+            box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .share-actions {
+            display: flex;
+            gap: 16px;
+            margin-top: 35px;
+        }
+
+        .share-actions .btn {
+            flex: 1;
+        }
+
+        /* 查看器页面样式 - 科技感 */
+        .viewer-container {
+            position: relative;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+        }
+
+        .viewer-header {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(180deg, rgba(15, 23, 42, 0.9) 0%, transparent 100%);
+            padding: 24px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 10;
+        }
+
+        .viewer-title {
+            color: white;
+            font-size: 1.375rem;
+            font-weight: 700;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .viewer-model-name {
+            color: rgba(255,255,255,0.7);
+            font-size: 0.9375rem;
+        }
+
+        .viewer-canvas {
+            flex: 1;
+            background: 
+                radial-gradient(circle at 30% 30%, rgba(14, 165, 233, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 70% 70%, rgba(139, 92, 246, 0.1) 0%, transparent 50%),
+                linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.5rem;
+            position: relative;
+        }
+
+        .viewer-canvas::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: 
+                linear-gradient(rgba(14, 165, 233, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(14, 165, 233, 0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+            pointer-events: none;
+        }
+
+        .viewer-sidebar {
+            position: absolute;
+            right: 24px;
+            top: 90px;
+            width: 300px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            box-shadow: 
+                0 25px 50px -12px rgba(0, 0, 0, 0.25),
+                0 0 0 1px rgba(255, 255, 255, 0.1);
+            max-height: calc(100vh - 130px);
+            overflow-y: auto;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .viewer-sidebar-section {
+            padding: 24px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .viewer-sidebar-section:last-child {
+            border-bottom: none;
+        }
+
+        .sidebar-title {
+            font-size: 0.8125rem;
+            color: var(--text-gray);
+            margin-bottom: 16px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 700;
+        }
+
+        .tool-buttons {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+
+        .tool-btn {
+            background: var(--bg-gray);
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            padding: 18px 12px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .tool-btn:hover {
+            background: var(--primary-light);
+            border-color: var(--primary-color);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px -4px rgba(14, 165, 233, 0.2);
+        }
+
+        .tool-btn.active {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--accent-cyan) 100%);
+            color: white;
+            border-color: transparent;
+            box-shadow: 0 8px 16px -4px rgba(14, 165, 233, 0.4);
+        }
+
+        .tool-icon {
+            font-size: 28px;
+        }
+
+        .tool-label {
+            font-size: 0.8125rem;
+            font-weight: 600;
+        }
+
+        .scene-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .scene-btn {
+            background: var(--bg-gray);
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            padding: 14px 16px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            text-align: left;
+            font-weight: 500;
+        }
+
+        .scene-btn:hover {
+            background: var(--primary-light);
+            border-color: var(--primary-color);
+            transform: translateX(4px);
+        }
+
+        .scene-btn.active {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--accent-cyan) 100%);
+            color: white;
+            border-color: transparent;
+            box-shadow: 0 8px 16px -4px rgba(14, 165, 233, 0.4);
+        }
+
+        .hotspot-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .hotspot-item {
+            background: var(--bg-gray);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .hotspot-item:hover {
+            background: var(--primary-light);
+            border-color: var(--primary-color);
+        }
+
+        .hotspot-name {
+            font-weight: 600;
+            color: var(--text-dark);
+            margin-bottom: 4px;
+        }
+
+        .hotspot-info {
+            font-size: 0.875rem;
+            color: var(--text-gray);
+        }
+
+        .measurement-panel {
+            display: none;
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            min-width: 250px;
+        }
+
+        .measurement-panel.show {
+            display: block;
+            animation: slideUp 0.3s ease;
+        }
+
+        .measurement-title {
+            font-size: 0.875rem;
+            color: var(--text-gray);
+            margin-bottom: 10px;
+        }
+
+        .measurement-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+
+        .measurement-unit {
+            font-size: 1rem;
+            color: var(--text-gray);
+            margin-left: 5px;
+        }
+
+        /* 错误页面样式 */
+        .error-container {
+            max-width: 500px;
+            margin: 0 auto;
+            padding: 100px 20px;
+            text-align: center;
+        }
+
+        .error-icon {
+            font-size: 80px;
+            margin-bottom: 30px;
+        }
+
+        .error-title {
+            font-size: 2rem;
+            color: var(--text-primary);
+            margin-bottom: 15px;
+        }
+
+        .error-message {
+            font-size: 1.125rem;
+            color: var(--text-gray);
+            margin-bottom: 40px;
+        }
+
+        .error-actions {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+        }
+
+        .btn-secondary {
+            background: var(--bg-gray);
+            color: var(--text-dark);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-secondary:hover {
+            background: var(--border-color);
+        }
+
+        /* 动画 */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .share-options {
+                grid-template-columns: 1fr;
+            }
+
+            .viewer-iframe-container {
+                height: calc(100vh - 80px);
+            }
+
+            .share-actions {
+                flex-direction: column;
+            }
+        }
+        
+        /* iframe容器样式 */
+        .viewer-iframe-container {
+            position: relative;
+            width: 100%;
+            height: calc(100vh - 60px);
+            background: white;
+            overflow: hidden;
+        }
+        
+        .viewer-iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+        
+        .viewer-loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            z-index: 10;
+        }
+        
+        .viewer-loading-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+        }
+        
+        .viewer-loading-text {
+            font-size: 1rem;
+            color: var(--text-gray);
+        }
+        
+        .viewer-iframe-container.loaded .viewer-loading {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <!-- 欢迎页 -->
+    <div id="welcome" class="page active">
+        <div class="welcome-container">
+            <div class="welcome-logo animate-fade-in-up">SU-WEB</div>
+            <p class="welcome-subtitle animate-fade-in-up delay-100">
+                让甲方无需安装软件，通过浏览器即可在线查看您的 SketchUp 3D 模型
+            </p>
+
+            <div class="welcome-features">
+                <div class="welcome-feature animate-fade-in-up delay-200">
+                    <div class="welcome-feature-icon">
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                            <polyline points="17 8 12 3 7 8"/>
+                            <line x1="12" y1="3" x2="12" y2="15"/>
+                        </svg>
+                    </div>
+                    <div class="welcome-feature-title">一键上传</div>
+                    <div class="welcome-feature-desc">支持 .skp 格式，自动轻量化处理</div>
+                </div>
+                <div class="welcome-feature animate-fade-in-up delay-300">
+                    <div class="welcome-feature-icon">
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+                            <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+                        </svg>
+                    </div>
+                    <div class="welcome-feature-title">分享链接</div>
+                    <div class="welcome-feature-desc">生成分享链接，设置有效期和密码</div>
+                </div>
+                <div class="welcome-feature animate-fade-in-up delay-400">
+                    <div class="welcome-feature-icon">
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M3 3h18v18H3z"/>
+                            <path d="M21 9H3"/>
+                            <path d="M9 21V9"/>
+                        </svg>
+                    </div>
+                    <div class="welcome-feature-title">在线测量</div>
+                    <div class="welcome-feature-desc">支持距离和面积测量，无需量房</div>
+                </div>
+            </div>
+
+            <div class="welcome-cta animate-fade-in-up delay-500">
+                <button class="welcome-btn welcome-btn-primary" id="startUploadBtn">
+                    开始上传模型
+                </button>
+                <button class="welcome-btn welcome-btn-secondary" id="viewDemoBtn">
+                    查看示例模型
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 上传页面 -->
+    <div id="upload" class="page">
+        <div class="upload-container">
+            <div class="upload-box" id="uploadBox">
+                <div class="upload-icon">
+                    <svg width="72" height="72" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                        <polyline points="17 8 12 3 7 8"/>
+                        <line x1="12" y1="3" x2="12" y2="15"/>
+                    </svg>
+                </div>
+                <div class="upload-text">拖拽 .skp 文件到此处</div>
+                <div class="upload-hint">或点击选择文件 · 最大支持 500MB</div>
+            </div>
+
+            <div class="upload-progress" id="uploadProgress">
+                <div class="progress-text">正在上传...</div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+                <div class="progress-status" id="progressStatus">准备上传</div>
+            </div>
+
+            <input type="file" id="fileInput" accept=".skp" style="display: none;">
+        </div>
+    </div>
+
+    <!-- 分享页面 -->
+    <div id="share" class="page">
+        <div class="share-container">
+            <div class="share-header">
+                <h1 class="share-title">分享链接已生成</h1>
+                <p class="share-subtitle">您的模型已准备就绪，可以分享给甲方了</p>
+            </div>
+
+            <div class="share-card">
+                <div class="share-card-title">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display: inline-block; vertical-align: middle; margin-right: 8px;">
+                        <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+                        <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+                    </svg>
+                    分享链接
+                </div>
+                <div class="share-link-box">
+                    <span class="share-link-text" id="shareLink">https://su-web.app/view/abc123xyz</span>
+                    <button class="btn-copy" id="copyBtn">复制链接</button>
+                </div>
+
+                <div class="share-options">
+                    <div class="option-group">
+                        <label class="option-label">有效期</label>
+                        <select class="option-input">
+                            <option value="7">7 天</option>
+                            <option value="30">30 天</option>
+                            <option value="90">90 天</option>
+                            <option value="forever">永久</option>
+                        </select>
+                    </div>
+                    <div class="option-group">
+                        <label class="option-label">访问密码（可选）</label>
+                        <input type="password" class="option-input" placeholder="留空则无需密码">
+                    </div>
+                </div>
+
+                <div class="qr-code">
+                    <div class="qr-placeholder">
+                        <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <rect x="3" y="3" width="7" height="7"/>
+                            <rect x="14" y="3" width="7" height="7"/>
+                            <rect x="14" y="14" width="7" height="7"/>
+                            <rect x="3" y="14" width="7" height="7"/>
+                        </svg>
+                    </div>
+                    <div style="color: var(--text-gray); font-size: 0.875rem;">扫码或访问上方链接</div>
+                </div>
+            </div>
+
+            <div class="share-actions">
+                <button class="btn btn-secondary" id="backToViewerBtn">返回查看器</button>
+                <button class="btn btn-primary" id="copyAndShareBtn">复制链接</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 查看器页面 -->
+    <div id="viewer" class="page">
+        <div class="viewer-container">
+            <div class="viewer-header">
+                <div>
+                    <div class="logo" style="font-size: 1.5rem; margin-bottom: 0;">SU-WEB</div>
+                    <div class="viewer-model-name">客厅设计方案 v1.skp</div>
+                </div>
+                <button class="btn btn-primary" id="shareBtn">分享</button>
+            </div>
+
+            <div class="viewer-iframe-container" id="viewerContainer">
+                <div class="viewer-loading" id="viewerLoading">
+                    <div class="viewer-loading-icon">
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M3 21h18M5 21V7l8-4 8 4v14M8 21v-9a2 2 0 0 1 4 0v9"/>
+                        </svg>
+                    </div>
+                    <div class="viewer-loading-text">正在加载 3D 查看器...</div>
+                </div>
+                <iframe 
+                    id="viewerFrame"
+                    class="viewer-iframe"
+                    src="../prototype/prototype_v1.0.html"
+                    onload="onViewerLoaded()"
+                    onerror="onViewerError()"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowfullscreen>
+                </iframe>
+            </div>
+        </div>
+    </div>
+
+    <!-- 错误页面 -->
+    <div id="error" class="page">
+        <div class="error-container">
+            <div class="error-icon" id="errorIcon">
+                <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <circle cx="12" cy="12" r="10"/>
+                    <line x1="15" y1="9" x2="9" y2="15"/>
+                    <line x1="9" y1="9" x2="15" y2="15"/>
+                </svg>
+            </div>
+            <h1 class="error-title" id="errorTitle">链接已失效</h1>
+            <p class="error-message" id="errorMessage">
+                很抱歉，此分享链接已过期或不存在，请联系分享者获取新的链接。
+            </p>
+            <div class="error-actions">
+                <button class="btn btn-secondary" onclick="navigateTo('upload')">上传新模型</button>
+                <button class="btn btn-primary" id="retryBtn">刷新重试</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 路由系统
+        let isNavigating = false; // 防止循环触发的标志位
+
+        function navigateTo(page) {
+            if (isNavigating) return; // 如果正在导航，直接返回
+            isNavigating = true;
+
+            // 隐藏所有页面
+            document.querySelectorAll('.page').forEach(p => {
+                p.classList.remove('active');
+            });
+
+            // 显示目标页面
+            const targetPage = document.getElementById(page);
+            if (targetPage) {
+                setTimeout(() => {
+                    targetPage.classList.add('active');
+                }, 50);
+            }
+
+            // 更新 URL hash
+            window.location.hash = page;
+            
+            // 延迟重置标志位
+            setTimeout(() => {
+                isNavigating = false;
+            }, 100);
+        }
+
+        // 监听 hash 变化
+        window.addEventListener('hashchange', () => {
+            const hash = window.location.hash.slice(1);
+            if (hash && !isNavigating) {
+                navigateTo(hash);
+            }
+        });
+
+        // 初始化页面
+        window.addEventListener('load', () => {
+            // 清除URL hash，确保从欢迎页开始
+            window.location.hash = '';
+            // 显示欢迎页
+            navigateTo('welcome');
+        });
+
+        // 欢迎页按钮事件
+        document.getElementById('startUploadBtn').addEventListener('click', () => {
+            navigateTo('upload');
+        });
+
+        document.getElementById('viewDemoBtn').addEventListener('click', () => {
+            navigateTo('viewer');
+        });
+
+        // 查看器页面逻辑
+        document.getElementById('shareBtn').addEventListener('click', () => {
+            navigateTo('share');
+        });
+
+        // 上传页面逻辑
+        const uploadBox = document.getElementById('uploadBox');
+        const fileInput = document.getElementById('fileInput');
+        const uploadProgress = document.getElementById('uploadProgress');
+        const progressFill = document.getElementById('progressFill');
+        const progressStatus = document.getElementById('progressStatus');
+
+        // 点击上传框
+        uploadBox.addEventListener('click', () => {
+            fileInput.click();
+        });
+
+        // 文件选择
+        fileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                validateAndUpload(file);
+            }
+        });
+
+        // 拖拽上传
+        uploadBox.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadBox.classList.add('dragover');
+        });
+
+        uploadBox.addEventListener('dragleave', () => {
+            uploadBox.classList.remove('dragover');
+        });
+
+        uploadBox.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadBox.classList.remove('dragover');
+            const file = e.dataTransfer.files[0];
+            if (file) {
+                validateAndUpload(file);
+            }
+        });
+
+        // 验证和上传
+        function validateAndUpload(file) {
+            // 检查文件格式
+            if (!file.name.endsWith('.skp')) {
+                alert('仅支持 .skp 格式文件');
+                return;
+            }
+
+            // 检查文件大小
+            if (file.size > 500 * 1024 * 1024) {
+                alert('文件大小超过 500MB 限制');
+                return;
+            }
+
+            // 显示进度
+            uploadProgress.classList.add('show');
+            simulateUpload();
+        }
+
+        // 模拟上传进度
+        function simulateUpload() {
+            let progress = 0;
+            const stages = [
+                '准备上传...',
+                '验证文件格式...',
+                '上传中...',
+                '格式转换为 glTF...',
+                '生成缩略图...',
+                '上传完成！'
+            ];
+
+            const interval = setInterval(() => {
+                progress += Math.random() * 15;
+                if (progress > 100) progress = 100;
+
+                progressFill.style.width = progress + '%';
+                progressStatus.textContent = stages[Math.min(Math.floor(progress / 17), stages.length - 1)];
+
+                if (progress >= 100) {
+                    clearInterval(interval);
+                    setTimeout(() => {
+                        navigateTo('viewer');
+                    }, 500);
+                }
+            }, 200);
+        }
+
+        // 分享页面逻辑
+        document.getElementById('copyBtn').addEventListener('click', () => {
+            const linkText = document.getElementById('shareLink').textContent;
+            navigator.clipboard.writeText(linkText).then(() => {
+                const btn = document.getElementById('copyBtn');
+                btn.textContent = '已复制！';
+                setTimeout(() => {
+                    btn.textContent = '复制链接';
+                }, 2000);
+            });
+        });
+
+        document.getElementById('copyAndShareBtn').addEventListener('click', () => {
+            const linkText = document.getElementById('shareLink').textContent;
+            navigator.clipboard.writeText(linkText).then(() => {
+                const btn = document.getElementById('copyAndShareBtn');
+                btn.textContent = '✓ 已复制！';
+                setTimeout(() => {
+                    btn.textContent = '✓ 复制链接';
+                }, 2000);
+            });
+        });
+
+        document.getElementById('backToViewerBtn').addEventListener('click', () => {
+            navigateTo('viewer');
+        });
+
+        // 查看器页面逻辑
+        document.getElementById('shareBtn').addEventListener('click', () => {
+            navigateTo('share');
+        });
+
+        // 工具按钮点击
+        document.querySelectorAll('.tool-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+
+                const tool = btn.dataset.tool;
+                const measurementPanel = document.getElementById('measurementPanel');
+
+                if (tool === 'distance' || tool === 'area') {
+                    measurementPanel.classList.add('show');
+                    if (tool === 'distance') {
+                        document.getElementById('measurementValue').textContent = '3450';
+                        document.getElementById('measurementUnit').textContent = 'mm';
+                    } else {
+                        document.getElementById('measurementValue').textContent = '24.5';
+                        document.getElementById('measurementUnit').textContent = 'm²';
+                    }
+                } else {
+                    measurementPanel.classList.remove('show');
+                }
+            });
+        });
+
+        // 场景按钮点击
+        document.querySelectorAll('.scene-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.scene-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+            });
+        });
+
+        // 热点点击
+        document.querySelectorAll('.hotspot-item').forEach(item => {
+            item.addEventListener('click', () => {
+                alert('显示热点详情弹窗');
+            });
+        });
+
+        // 错误页面逻辑
+        document.getElementById('retryBtn').addEventListener('click', () => {
+            window.location.reload();
+        });
+
+        // 查看器加载成功
+        function onViewerLoaded() {
+            const container = document.getElementById('viewerContainer');
+            const loading = document.getElementById('viewerLoading');
+            if (container && loading) {
+                setTimeout(() => {
+                    container.classList.add('loaded');
+                }, 500);
+            }
+        }
+
+        // 查看器加载失败
+        function onViewerError() {
+            const container = document.getElementById('viewerContainer');
+            const loading = document.getElementById('viewerLoading');
+            if (loading) {
+                loading.innerHTML = `
+                    <div class="viewer-loading-icon">❌</div>
+                    <div class="viewer-loading-text">加载失败，请刷新重试</div>
+                `;
+            }
+        }
+
+        // 错误类型切换（用于测试）
+        function showError(type) {
+            const errorIcon = document.getElementById('errorIcon');
+            const errorTitle = document.getElementById('errorTitle');
+            const errorMessage = document.getElementById('errorMessage');
+
+            switch(type) {
+                case 'expired':
+                    errorIcon.textContent = '🔗';
+                    errorTitle.textContent = '链接已失效';
+                    errorMessage.textContent = '很抱歉，此分享链接已过期或不存在，请联系分享者获取新的链接。';
+                    break;
+                case 'password':
+                    errorIcon.textContent = '🔒';
+                    errorTitle.textContent = '需要访问密码';
+                    errorMessage.textContent = '此链接受密码保护，请输入访问密码。';
+                    break;
+                case 'loaderror':
+                    errorIcon.textContent = '❌';
+                    errorTitle.textContent = '加载失败';
+                    errorMessage.textContent = '模型加载失败，请稍后重试。';
+                    break;
+                case 'device':
+                    errorIcon.textContent = '📱';
+                    errorTitle.textContent = '设备性能不足';
+                    errorMessage.textContent = '当前模型复杂度较高，建议使用电脑端查看。';
+                    break;
+            }
+
+            navigateTo('error');
+        }
+    </script>
+</body>
+</html>
